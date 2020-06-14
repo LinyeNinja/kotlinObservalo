@@ -6,7 +6,7 @@ import android.graphics.drawable.Drawable
 class AppInfo {
     lateinit var label: String
     lateinit var packageName: String
-    lateinit var icon: Drawable
+    var icon = 0
 
     init {
         this.label = label
