@@ -21,7 +21,7 @@ class AppAdapter(items: ArrayList<AppInfo>): RecyclerView.Adapter<AppAdapter.Vie
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items?.get(position)
         holder.label?.text = item?.label
-        holder.icon?.setImageResource(item?.icon!!)
+        holder.icon?.setImageDrawable(item?.icon!!)
     }
     override fun getItemCount(): Int {
         return this.items?.count()!!

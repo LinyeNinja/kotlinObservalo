@@ -11,8 +11,6 @@ import androidx.recyclerview.widget.RecyclerView
 
 class MainActivity : AppCompatActivity() {
 
-    var listaDeApps = AppGetter.getListaDeApps(this)
-
     var lista:RecyclerView? = null
     var layoutManager:RecyclerView.LayoutManager? = null
     var adaptador:AppAdapter? = null
@@ -20,6 +18,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        var listaDeApps = AppGetter.getListaDeApps(this.applicationContext)
 
         lista = findViewById(R.id.lista)
         layoutManager = LinearLayoutManager(this)
