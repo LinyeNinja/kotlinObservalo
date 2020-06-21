@@ -1,13 +1,11 @@
 package com.example.kotlinobservalo
 
 import android.os.Bundle
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
-import android.view.Menu
-import android.view.MenuItem
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -16,13 +14,20 @@ class MainActivity : AppCompatActivity() {
     var adaptador:AppAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Contexto.mainActivity = this
+        Contexto.app = this.applicationContext
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         var listaDeApps = AppGetter.getListaDeApps(this.applicationContext)
 
         lista = findViewById(R.id.lista)
-        layoutManager = LinearLayoutManager(this)
+        layoutManager = GridLayoutManager(this, 6, RecyclerView.HORIZONTAL, false)
+
+        //var snapHelper:PagerSnapHelper = PagerSnapHelper()
+        //snapHelper.attachToRecyclerView(lista)
+
         adaptador = AppAdapter(listaDeApps!!)
         lista?.layoutManager = layoutManager
         lista?.adapter = adaptador

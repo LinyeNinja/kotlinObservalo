@@ -23,7 +23,9 @@ object AppGetter {
             val packageName = ri.activityInfo.packageName
             val icon = ri.activityInfo.loadIcon(pm)
 
-            val app = AppInfo(label, packageName, icon)
+            val color = Paint.getDominantColor(icon)
+
+            val app = AppInfo(label, packageName, icon, color)
             appsList.add(app)
         }
         return appsList
