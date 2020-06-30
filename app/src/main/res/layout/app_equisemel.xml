@@ -4,11 +4,13 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@android:color/holo_blue_bright"
+        android:clickable="true"
         android:focusable="true"
         android:gravity="center_horizontal"
         android:importantForAccessibility="yes"
         android:orientation="vertical"
-        android:padding="1dp">
+        android:padding="1dp"
+        android:radius="200dp">
 
         <ImageView
             android:id="@+id/icon"
@@ -25,7 +27,9 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:clickable="false"
+            android:focusable="false">
 
             <TextView
                 android:id="@+id/label"
@@ -45,6 +49,7 @@
                 android:text="App Name"
 
                 android:textAlignment="center"
+                android:textColor="#BF000000"
                 android:textIsSelectable="false"
                 android:textSize="20dp" />
         </LinearLayout>

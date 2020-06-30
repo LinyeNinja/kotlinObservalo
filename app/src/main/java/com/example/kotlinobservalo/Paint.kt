@@ -64,9 +64,30 @@ object Paint {
                 dominantColor = key
             }
         }
+
         return dominantColor
     }
+
+    open fun cambiarTono(input: Int): Int{
+        val hsv = FloatArray(3)
+        Color.colorToHSV(input, hsv)
+        //hsv[2] += 15f - hsv[2]; // value component
+        //hsv[1] = 0.6f;
+        //hsv[2] += 15f - hsv[2]; // value component
+        //hsv[1] = 0.6f;
+        hsv[2] = 1f
+        hsv[1] = 0.4f
+        val output = Color.HSVToColor(hsv)
+        return output
+    }
+
+    open fun getDominantFlatColor(drawable: Drawable): Int{
+        return cambiarTono(getDominantColor(drawable))
+    }
+
 }
+
+
 
 fun drawableToBitmap(drawable: Drawable): Bitmap {
     var bitmap: Bitmap? = null

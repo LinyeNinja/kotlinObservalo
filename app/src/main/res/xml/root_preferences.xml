@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/frameLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".Config.fragments.Principal">
+
+    <PreferenceCategory
+
+        android:title="Pantalla de Inicio">
+
+        <Preference
+            android:title="Item1"
+            />
+
+        <SwitchPreferenceCompat
+            android:key="modoAltoContraste"
+            android:title="Modo de alto contraste"
+            android:summary="descripción"
+            />
+        <SwitchPreferenceCompat
+            android:key="modoSepia"
+            android:title="Modo sepia"
+            android:summary="descripción"
+            />
+        <SwitchPreferenceCompat
+            android:key="modoNoche"
+            android:title="Modo noche"
+            android:summary="descripción"
+            />
+
+        <SeekBarPreference
+            android:key="cantColumnas"
+            android:title="Cantidad de columnas"
+            android:defaultValue="3"
+            app:showSeekBarValue="true"
+            android:max = "6"
+            />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>
