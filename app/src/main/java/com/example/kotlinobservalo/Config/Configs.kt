@@ -16,6 +16,8 @@ object Configs {
 
     var cambiado = false
 
+    var modoConfig = false
+
     fun obtenerBoolean(input: String):Boolean{
         return prefs.getBoolean(input, false)
     }

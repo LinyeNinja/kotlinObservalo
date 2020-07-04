@@ -13,6 +13,7 @@
 
         <Preference
             android:title="Item1"
+            android:key="Item1"
             />
 
         <SwitchPreferenceCompat

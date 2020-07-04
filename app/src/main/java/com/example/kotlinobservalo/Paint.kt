@@ -68,50 +68,47 @@ object Paint {
         return dominantColor
     }
 
-    open fun cambiarTono(input: Int): Int{
-        val hsv = FloatArray(3)
-        Color.colorToHSV(input, hsv)
-        //hsv[2] += 15f - hsv[2]; // value component
-        //hsv[1] = 0.6f;
-        //hsv[2] += 15f - hsv[2]; // value component
-        //hsv[1] = 0.6f;
-        hsv[2] = 1f
-        hsv[1] = 0.4f
-        val output = Color.HSVToColor(hsv)
-        return output
-    }
-
-    open fun getDominantFlatColor(drawable: Drawable): Int{
-        return cambiarTono(getDominantColor(drawable))
-    }
-
-}
-
-
-
-fun drawableToBitmap(drawable: Drawable): Bitmap {
-    var bitmap: Bitmap? = null
-    if (drawable is BitmapDrawable) {
-        val bitmapDrawable = drawable
-        if (bitmapDrawable.bitmap != null) {
-            return bitmapDrawable.bitmap
+    open fun getDominantFlatColor(drawable: Drawable, mode: String): Int {
+        if (mode == "light") {
+            val hsv = FloatArray(3)
+            Color.colorToHSV(getDominantColor(drawable), hsv)
+            hsv[2] = 1f
+            hsv[1] = 0.4f
+            return Color.HSVToColor(hsv)
+        } else {
+            val hsv = FloatArray(3)
+            Color.colorToHSV(getDominantColor(drawable), hsv)
+            hsv[2] = 0.2f
+            hsv[1] = 0.4f
+            return Color.HSVToColor(hsv)
         }
     }
-    bitmap = if (drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) {
-        Bitmap.createBitmap(
-            1,
-            1,
-            Bitmap.Config.ARGB_8888
-        ) // Single color bitmap will be created of 1x1 pixel
-    } else {
-        Bitmap.createBitmap(
-            drawable.intrinsicWidth,
-            drawable.intrinsicHeight,
-            Bitmap.Config.ARGB_8888
-        )
+
+
+    fun drawableToBitmap(drawable: Drawable): Bitmap {
+        var bitmap: Bitmap? = null
+        if (drawable is BitmapDrawable) {
+            val bitmapDrawable = drawable
+            if (bitmapDrawable.bitmap != null) {
+                return bitmapDrawable.bitmap
+            }
+        }
+        bitmap = if (drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) {
+            Bitmap.createBitmap(
+                1,
+                1,
+                Bitmap.Config.ARGB_8888
+            ) // Single color bitmap will be created of 1x1 pixel
+        } else {
+            Bitmap.createBitmap(
+                drawable.intrinsicWidth,
+                drawable.intrinsicHeight,
+                Bitmap.Config.ARGB_8888
+            )
+        }
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+        return bitmap
     }
-    val canvas = Canvas(bitmap)
-    drawable.setBounds(0, 0, canvas.width, canvas.height)
-    drawable.draw(canvas)
-    return bitmap
 }

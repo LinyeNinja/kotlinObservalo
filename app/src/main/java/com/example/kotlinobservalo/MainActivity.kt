@@ -1,3 +1,10 @@
+/*
+Preguntas
+¿Cómo funciona un theme?
+error al volver de configuración a la main activity
+error cuando intento agregar en un índice raro con mutablelist
+*/
+
 package com.example.kotlinobservalo
 
 import android.content.Context
@@ -5,17 +12,21 @@ import android.graphics.Color
 import android.graphics.Point
 import android.graphics.Rect
 import android.os.Bundle
+import android.text.TextUtils.indexOf
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import androidx.annotation.DimenRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 import com.example.kotlinobservalo.Config.Configs
-import java.util.stream.Collectors.toList
+import com.google.android.material.snackbar.Snackbar
 
+var alibaba = false
 
 class MainActivity : AppCompatActivity() {
 
@@ -23,8 +34,14 @@ class MainActivity : AppCompatActivity() {
     var layoutManager:RecyclerView.LayoutManager? = null
     var adaptador:AppAdapter? = null
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        //if (alibaba == false){
+        //    getApplication().setTheme(android.R.style.Theme_Black_NoTitleBar_Fullscreen)
+        //    alibaba = true
+        //    reload()
+        //}
+
         Contexto.mainActivity = this
         Contexto.app = this.applicationContext
 
@@ -50,17 +67,45 @@ class MainActivity : AppCompatActivity() {
             cantFilas++ //y agrega una fila más
         }
 
+        lista = findViewById(R.id.lista)
+
+        if (Configs.obtenerBoolean("modoAltoContraste") == true){
+            if (Configs.obtenerBoolean("modoNoche") == true){
+                lista!!.setBackgroundColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.background_highContrast_dark, null))
+            }
+            else{
+                lista!!.setBackgroundColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.background_highContrast_light, null))
+            }
+        }
+        else{
+            if (Configs.obtenerBoolean("modoNoche") == true){
+                lista!!.setBackgroundColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.background_dark, null))
+                Log.d("a", ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.background_dark, null).toString())
+            }
+            else{
+                lista!!.setBackgroundColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.background_light, null))
+            }
+        }
+
         var listaDeApps: ArrayList<AppInfo>
         listaDeApps = AppGetter.getListaDeApps(this.applicationContext)
         val configAct = AppInfo("Configurar Launcher", "LclObservaloConfigActivity", null, Color.RED)
         listaDeApps.add(configAct)
 
-        tinydb.putListObject("listaDeApps", listaDeApps);
+        var mapDeIndices: MutableMap<String, Int> = mutableMapOf()
 
-        //var listaDeAppsLocales = listaDeActivitiesLocales()
-        //listaDeApps?.addAll(listaDeAppsLocales!!)
+        var listaDeAppsAMostrar: MutableList<AppInfo>? = mutableListOf<AppInfo>()
 
-        lista = findViewById(R.id.lista)
+        //acá a continuación se crea la lista de las apps que se van a mostrar utilizando los contenidos de ListaDeApps con los índices de listaDeAppsAMostrar
+        //Esto tiene el problema de que si se elimina una aplicación esta no se va a borrar de mapDeIndices
+        for (i in 1..listaDeApps.size-1){  //me parece que esto le saca una app... ups
+            val element = listaDeApps[i]
+            if (!(mapDeIndices.contains(listaDeApps[i].packageName))){
+                mapDeIndices.put(listaDeApps[i].packageName, mapDeIndices.size+1)
+            }
+            listaDeAppsAMostrar?.add(mapDeIndices[listaDeApps[i].packageName]!!, element)
+        }
+        //listaDeAppsAMostrar.add(i, element)
 
         layoutManager = GridLayoutManager(this, cantFilas, RecyclerView.HORIZONTAL, false)
 
@@ -70,10 +115,47 @@ class MainActivity : AppCompatActivity() {
         //var snapHelper:PagerSnapHelper = PagerSnapHelper()
         //snapHelper.attachToRecyclerView(lista)
 
-        adaptador = AppAdapter(listaDeApps, appWidth, appHeight)
+        adaptador = AppAdapter(listaDeAppsAMostrar, appWidth, appHeight)
+
+        //acá van las cosas sobre el modo de configuración del órden y demás:
+        if (Configs.modoConfig == true){
+            val itemTouchHelperCallback =
+                object :
+                    ItemTouchHelper.SimpleCallback(ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT or ItemTouchHelper.UP  or ItemTouchHelper.DOWN, 0) {
+                    override fun onMove( recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder ): Boolean {
+                        val fromPos: Int = viewHolder.adapterPosition
+                        val toPos: Int = target.adapterPosition
+                        adaptador!!.swapItems(fromPos, toPos)
+                        return true// true if moved, false otherwise
+                    }
+
+                    override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                        /*
+                         noteViewModel.delete(noteAdapter.getNoteAt(viewHolder.adapterPosition))
+                         Toast.makeText(
+                             this@MainActivity,
+                             getString(R.string.note_deleted),
+                             Toast.LENGTH_SHORT
+                         ).show()
+                         */
+                    }
+                }
+
+            val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
+            itemTouchHelper.attachToRecyclerView(lista)
+
+            val fab: View = findViewById(R.id.fab)
+            fab.setOnClickListener { view ->
+                Snackbar.make(view, "Here's a Snackbar", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null)
+                    .show()
+                Log.d("a", "aaaaaaaaaaaaaaa")
+            }
+        }
 
         lista?.layoutManager = layoutManager
         lista?.adapter = adaptador
+
     }
 
     override fun onResume(){

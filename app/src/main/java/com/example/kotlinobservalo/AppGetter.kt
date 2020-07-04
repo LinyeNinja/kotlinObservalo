@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.util.Log
+import androidx.core.content.res.ResourcesCompat
 import com.example.kotlinobservalo.Config.Configs
 import com.example.kotlinobservalo.Config.LclObservaloConfigActivity
 import java.util.*
@@ -29,19 +30,22 @@ object AppGetter {
             var color = Color.RED
             if (Configs.obtenerBoolean("modoAltoContraste") == true){
                 if (Configs.obtenerBoolean("modoNoche") == true){
-                    color = Color.BLACK
+                    color = ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.app_highContrast_dark, null)
                 }
                 else{
-                    color = Color.WHITE
+                    color = ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.app_highContrast_light, null)
                 }
             }
-            else{
-                color = Paint.getDominantFlatColor(icon)
+            else {
+                if (Configs.obtenerBoolean("modoNoche") == true) {
+                    color = Paint.getDominantFlatColor(icon, "dark")
+                } else {
+                    color = Paint.getDominantFlatColor(icon, "light")
+                }
             }
             if (Configs.obtenerBoolean("modoSepia") == true){
-                color += 704214
+                color = color + Color.parseColor("#D0C4A0")
             }
-
 
             val app = AppInfo(label, packageName, icon, color)
             appsList.add(app)
@@ -61,6 +65,7 @@ object AppGetter {
             } catch (ignored: ClassNotFoundException) {
             }   */
             val intent = Intent(Contexto.mainActivity, LclObservaloConfigActivity::class.java)
+            Configs.cambiado = true
             Contexto.mainActivity.startActivity(intent)
         }
         else {

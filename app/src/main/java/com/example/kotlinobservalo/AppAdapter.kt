@@ -10,13 +10,15 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat.setBackground
 import androidx.recyclerview.widget.RecyclerView
+import com.example.kotlinobservalo.Config.Configs
 import kotlinx.android.synthetic.main.app_equisemel.view.*
 
-class AppAdapter(items: ArrayList<AppInfo>?, cellWidth: Int, cellHeight: Int): RecyclerView.Adapter<AppAdapter.ViewHolder>(){
+class AppAdapter(items: MutableList<AppInfo>?, cellWidth: Int, cellHeight: Int): RecyclerView.Adapter<AppAdapter.ViewHolder>(){
 
-    var items:ArrayList<AppInfo>? = null
+    var items:MutableList<AppInfo>? = null
 
     var viewHolder:ViewHolder? = null
 
@@ -63,6 +65,23 @@ class AppAdapter(items: ArrayList<AppInfo>?, cellWidth: Int, cellHeight: Int): R
         holder.icon!!.getLayoutParams().width = holder.icon!!.getLayoutParams().height
         holder.label!!.textSize = holder.icon!!.getLayoutParams().width * 0.115f
 
+        if (Configs.obtenerBoolean("modoAltoContraste") == true){
+            if (Configs.obtenerBoolean("modoNoche") == true){
+                holder.label!!.setTextColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.text_highContrast_dark, null))
+            }
+            else{
+                holder.label!!.setTextColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.text_highContrast_light, null))
+            }
+        }
+        else{
+            if (Configs.obtenerBoolean("modoNoche") == true){
+                holder.label!!.setTextColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.text_dark, null))
+            }
+            else{
+                holder.label!!.setTextColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.text_light, null))
+            }
+        }
+
         val lp: LinearLayout.LayoutParams = LinearLayout.LayoutParams(cellWidth, cellHeight)
         holder.layout!!.setLayoutParams(lp)
 
@@ -91,6 +110,18 @@ class AppAdapter(items: ArrayList<AppInfo>?, cellWidth: Int, cellHeight: Int): R
         }
     }
 
+    //para el drag and drop
+    fun swapItems(fromPosition: Int, toPosition: Int) {
+        if (fromPosition < toPosition) {
+            for (i in fromPosition..toPosition - 1) {
+                items!!.set(i, items!!.set(i+1, items!!.get(i)));
+            }
+        } else {
+            for (i in fromPosition..toPosition + 1) {
+                items!!.set(i, items!!.set(i-1, items!!.get(i)));
+            }
+        }
 
-
+        notifyItemMoved(fromPosition, toPosition)
+    }
 }

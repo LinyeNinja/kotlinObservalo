@@ -3,4 +3,21 @@
     <color name="colorPrimary">#6200EE</color>
     <color name="colorPrimaryDark">#3700B3</color>
     <color name="colorAccent">#03DAC5</color>
+
+    <color name="colorAccept">#77DD77</color>
+
+    <color name="background_highContrast_light">#0F0F0F</color>
+    <color name="app_highContrast_light">#F5F5F5</color>
+    <color name="text_highContrast_light">#0F0F0F</color>
+
+    <color name="app_highContrast_dark">#0F0F0F</color>
+    <color name="background_highContrast_dark">#F5F5F5</color>
+    <color name="text_highContrast_dark">#F5F5F5</color>
+
+    <color name="background_dark">#000000</color>
+    <color name="text_dark">#BFFFFFFF</color>
+
+    <color name="background_light">#F5F5F5</color>
+    <color name="text_light">#BF000000</color>
+
 </resources>
