@@ -3,6 +3,7 @@ package com.example.kotlinobservalo.Config
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.KeyEvent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -27,7 +28,7 @@ class LclObservaloConfigActivity : AppCompatActivity() {
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey)
 
-            val button: Preference? = findPreference("Item1")
+            val button: Preference? = findPreference("configIconos")
             button?.setOnPreferenceClickListener(object : Preference.OnPreferenceClickListener {
                 override fun onPreferenceClick(preference: Preference?): Boolean {
                     Configs.modoConfig = true
@@ -37,9 +38,13 @@ class LclObservaloConfigActivity : AppCompatActivity() {
                     return true
                 }
             })
-
         }
     }
+
+    override fun onBackPressed() {
+        val intent = Intent(this, MainActivity::class.java)
+        this.startActivity(intent)
+        //2020-07-04 13:33:59.350 5630-5630/com.example.kotlinobservalo I/Choreographer: Skipped 109 frames!  The application may be doing too much work on its main thread.
+    }
+
 }
-
-

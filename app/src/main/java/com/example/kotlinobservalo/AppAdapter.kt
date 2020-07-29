@@ -2,6 +2,8 @@ package com.example.kotlinobservalo
 
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.Color.WHITE
+import android.graphics.Color.argb
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,11 +12,14 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat.setBackground
 import androidx.recyclerview.widget.RecyclerView
 import com.example.kotlinobservalo.Config.Configs
 import kotlinx.android.synthetic.main.app_equisemel.view.*
+
+var contador = 0
 
 class AppAdapter(items: MutableList<AppInfo>?, cellWidth: Int, cellHeight: Int): RecyclerView.Adapter<AppAdapter.ViewHolder>(){
 
@@ -39,20 +44,29 @@ class AppAdapter(items: MutableList<AppInfo>?, cellWidth: Int, cellHeight: Int):
         val item = items?.get(position)
         packageName = item!!.packageName
 
+        if (Configs.modoConfig != true){
         holder.v.setOnClickListener(
             object: View.OnClickListener {
                 override fun onClick(view: View) {
                     AppGetter.launch(item.packageName)
-                    Log.d("a", item.packageName)
                 }
             }
         )
+        }
 
         holder.label?.text = item.label
 
         if (item.icon != null) {
             holder.icon?.setImageDrawable(item.icon!!)
         }
+        /* //ESTO ES PARA OBTENER EL ÍCONO DIRECTAMENTE DEL TELÉFONO EN VEZ DE CARGARLO DE APPINFO
+        if (packageName != "LclObservaloConfigActivity") {
+            val icon = Contexto.app.getPackageManager().getApplicationIcon(item.packageName)
+            if (icon != null) {
+                holder.icon?.setImageDrawable(icon)
+            }
+        }
+        */
 
         var gradientDrawable:GradientDrawable = GradientDrawable()
         gradientDrawable.cornerRadius = 20f
@@ -74,11 +88,20 @@ class AppAdapter(items: MutableList<AppInfo>?, cellWidth: Int, cellHeight: Int):
             }
         }
         else{
-            if (Configs.obtenerBoolean("modoNoche") == true){
-                holder.label!!.setTextColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.text_dark, null))
-            }
-            else{
-                holder.label!!.setTextColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.text_light, null))
+            if (Configs.obtenerBoolean("modoFondo") == false){
+                if (Configs.obtenerBoolean("modoNoche") == true){
+                    holder.label!!.setTextColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.text_dark, null))
+                }
+                else{
+                    holder.label!!.setTextColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.text_light, null))
+                }
+            } else {
+                if (Configs.obtenerBoolean("modoNoche") == true) {
+                    holder.label!!.setTextColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.text_fondo_dark,null))
+                } else {
+                    holder.label!!.setShadowLayer(4.0f,0.0f, 0.0f, argb(200, 0, 0, 0))
+                    holder.label!!.setTextColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.text_fondo_light,null))
+                }
             }
         }
 

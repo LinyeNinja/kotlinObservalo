@@ -3,15 +3,13 @@ package com.example.kotlinobservalo
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 
-class AppInfo(label:String, packageName:String, icon:Drawable?, color: Int) {
-    lateinit var label: String
-    lateinit var packageName: String
-    var icon: Drawable?
+class AppGuardable(label:String, packageName:String, color: Int) {
+    var label: String
+    var packageName: String
     var color: Int = 0
     init {
         this.label = label
         this.packageName = packageName
-        this.icon = icon
         this.color = color
     }
 }

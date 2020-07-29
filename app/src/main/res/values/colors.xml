@@ -20,4 +20,7 @@
     <color name="background_light">#F5F5F5</color>
     <color name="text_light">#BF000000</color>
 
+    <color name="text_fondo_dark">#FF000000</color>
+    <color name="text_fondo_light">#FFFFFFFF</color>
+
 </resources>

@@ -1,40 +1,60 @@
 /*
 Preguntas
-¿Cómo funciona un theme?
 error al volver de configuración a la main activity
-error cuando intento agregar en un índice raro con mutablelist
+¿Es eficiente usar las referencias y pedir los íconos adentro del recyclerview?
+
+El Gran Problema
+No estoy pudiendo hacer que el recyclerview con las apps reciba los clicks del recyclerview del scroll.
+Por alguna razón pasarlo solo cuando es click no funciona.
+Hacerlo constantemente y deshabilitar el scrolling del otro tampoco (algunas soluciones no funcionan o hacen que no lo pueda scrollear manualmente, otras solo funcionan  si lo apreto por un milisegundo)
 */
+
 
 package com.example.kotlinobservalo
 
+import android.app.WallpaperManager
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Point
 import android.graphics.Rect
 import android.os.Bundle
-import android.text.TextUtils.indexOf
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import android.widget.FrameLayout
 import androidx.annotation.DimenRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ItemDecoration
+import androidx.recyclerview.widget.RecyclerView.OnItemTouchListener
 import com.example.kotlinobservalo.Config.Configs
-import com.google.android.material.snackbar.Snackbar
+import kotlinx.android.synthetic.main.app_equisemel.*
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.math.ceil
 
-var alibaba = false
 
 class MainActivity : AppCompatActivity() {
+
+    val snapear = false
+
+    var listaSeparador:RecyclerView? = null
+    var layoutManagerSeparador:RecyclerView.LayoutManager? = null
+    var adaptadorSeparador:SeparadorAdapter? = null
 
     var lista:RecyclerView? = null
     var layoutManager:RecyclerView.LayoutManager? = null
     var adaptador:AppAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        val tinydb = TinyDB(this)
 
         //if (alibaba == false){
         //    getApplication().setTheme(android.R.style.Theme_Black_NoTitleBar_Fullscreen)
@@ -48,7 +68,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val tinydb = TinyDB(this)
+        val layout: FrameLayout = findViewById(R.id.LinearLayout)
 
         var appWidth = 10
         var appHeight = 10
@@ -68,6 +88,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         lista = findViewById(R.id.lista)
+        listaSeparador = findViewById(R.id.listaSeparador)
+
 
         if (Configs.obtenerBoolean("modoAltoContraste") == true){
             if (Configs.obtenerBoolean("modoNoche") == true){
@@ -78,47 +100,60 @@ class MainActivity : AppCompatActivity() {
             }
         }
         else{
-            if (Configs.obtenerBoolean("modoNoche") == true){
-                lista!!.setBackgroundColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.background_dark, null))
-                Log.d("a", ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.background_dark, null).toString())
+            if (Configs.obtenerBoolean("modoFondo") == true){
+                val wm = WallpaperManager.getInstance(this)
+                val d = wm.peekDrawable()
+                layout.setBackground(d) // You can also use rl.setBackgroundDrawable(getWallpaper);
             }
-            else{
-                lista!!.setBackgroundColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.background_light, null))
+            else {
+                if (Configs.obtenerBoolean("modoNoche") == true) {
+                    lista!!.setBackgroundColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.background_dark, null))
+                } else {
+                    lista!!.setBackgroundColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.background_light, null))
+                }
             }
         }
+
 
         var listaDeApps: ArrayList<AppInfo>
         listaDeApps = AppGetter.getListaDeApps(this.applicationContext)
-        val configAct = AppInfo("Configurar Launcher", "LclObservaloConfigActivity", null, Color.RED)
+        val configAct = AppInfo("Configurar Launcher", "LclObservaloConfigActivity", ContextCompat.getDrawable(this, R.drawable.config), Color.RED)
         listaDeApps.add(configAct)
 
-        var mapDeIndices: MutableMap<String, Int> = mutableMapOf()
+        var listaDeAppsGuardadas = tinydb.getListaGuardada("list3")
 
-        var listaDeAppsAMostrar: MutableList<AppInfo>? = mutableListOf<AppInfo>()
+        listaDeApps = listaGuardadaAListaAMostrarActualizando(listaDeAppsGuardadas, listaDeApps).toCollection(ArrayList())
 
-        //acá a continuación se crea la lista de las apps que se van a mostrar utilizando los contenidos de ListaDeApps con los índices de listaDeAppsAMostrar
-        //Esto tiene el problema de que si se elimina una aplicación esta no se va a borrar de mapDeIndices
-        for (i in 1..listaDeApps.size-1){  //me parece que esto le saca una app... ups
-            val element = listaDeApps[i]
-            if (!(mapDeIndices.contains(listaDeApps[i].packageName))){
-                mapDeIndices.put(listaDeApps[i].packageName, mapDeIndices.size+1)
-            }
-            listaDeAppsAMostrar?.add(mapDeIndices[listaDeApps[i].packageName]!!, element)
-        }
-        //listaDeAppsAMostrar.add(i, element)
 
         layoutManager = GridLayoutManager(this, cantFilas, RecyclerView.HORIZONTAL, false)
+        layoutManager!!.canScrollHorizontally()
 
         var itemDeco = ItemOffsetDecoration(separacion)
-
         lista?.addItemDecoration(itemDeco)
-        //var snapHelper:PagerSnapHelper = PagerSnapHelper()
-        //snapHelper.attachToRecyclerView(lista)
 
-        adaptador = AppAdapter(listaDeAppsAMostrar, appWidth, appHeight)
+        adaptador = AppAdapter(listaDeApps, appWidth, appHeight)
+
+
+        layoutManagerSeparador = GridLayoutManager(this, 1, RecyclerView.HORIZONTAL, false)
+//        var itemDecoSeparador = ItemOffsetDecoration(separacion)
+//        listaSeparador?.addItemDecoration(itemDecoSeparador)
+
+        var snapHelper = PagerSnapHelper()
+        snapHelper.attachToRecyclerView(listaSeparador)
+
+        var cantidadDeSeparadores: Float = listaDeApps.size.toFloat()
+        cantidadDeSeparadores = ceil(cantidadDeSeparadores/cantFilas/cantColumnas)
+        adaptadorSeparador = SeparadorAdapter(cantidadDeSeparadores.toInt(), getDisplayContentSize('w'), getDisplayContentSize('h'))
 
         //acá van las cosas sobre el modo de configuración del órden y demás:
         if (Configs.modoConfig == true){
+            val fab: View = findViewById(R.id.fab)
+            fab.setVisibility(View.VISIBLE)
+            fab.setOnClickListener { view ->
+                tinydb.putListaGuardada("list3", listaMostrableAListaGuardable(listaDeApps))
+                terminarModoConfig()
+            }
+
             val itemTouchHelperCallback =
                 object :
                     ItemTouchHelper.SimpleCallback(ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT or ItemTouchHelper.UP  or ItemTouchHelper.DOWN, 0) {
@@ -126,7 +161,7 @@ class MainActivity : AppCompatActivity() {
                         val fromPos: Int = viewHolder.adapterPosition
                         val toPos: Int = target.adapterPosition
                         adaptador!!.swapItems(fromPos, toPos)
-                        return true// true if moved, false otherwise
+                        return true //true if moved, false otherwise
                     }
 
                     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
@@ -140,22 +175,144 @@ class MainActivity : AppCompatActivity() {
                          */
                     }
                 }
-
             val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
             itemTouchHelper.attachToRecyclerView(lista)
-
+        }
+        else{
             val fab: View = findViewById(R.id.fab)
-            fab.setOnClickListener { view ->
-                Snackbar.make(view, "Here's a Snackbar", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null)
-                    .show()
-                Log.d("a", "aaaaaaaaaaaaaaa")
+            fab.setVisibility(View.GONE)
+        }
+
+        lista!!.layoutManager = layoutManager
+        lista!!.adapter = adaptador
+
+        /*
+        listaSeparador!!.addOnItemTouchListener(
+            RecyclerTouchEvent( Contexto.mainActivity, listaSeparador,
+                object : RecyclerTouchEvent.ClickListener {
+                    override fun onClick(e: MotionEvent?)  {
+                        lista!!.dispatchTouchEvent(e)
+                    }
+                })
+        )*/
+
+        listaSeparador!!.addOnItemTouchListener(PasadorDeClicks(lista!!))
+
+        if (snapear == true) {
+            listaSeparador?.layoutManager = layoutManagerSeparador
+            listaSeparador?.adapter = adaptadorSeparador
+
+            val scrollListeners = arrayOfNulls<RecyclerView.OnScrollListener>(2)
+            scrollListeners[0] = object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    //super.onScrolled(recyclerView, dx, dy)
+                    //listaSeparador!!.removeOnScrollListener(scrollListeners[1]!!)
+                    //listaSeparador!!.scrollBy(dx, dy)
+                    //listaSeparador!!.addOnScrollListener(scrollListeners[1]!!)
+                }
+            }
+            scrollListeners[1] = object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    super.onScrolled(recyclerView, dx, dy)
+                    lista!!.removeOnScrollListener(scrollListeners[0]!!)
+                    lista!!.scrollBy(dx, dy)
+                    lista!!.addOnScrollListener(scrollListeners[0]!!)
+                }
+            }
+            lista!!.addOnScrollListener(scrollListeners[0]!!)
+            lista!!.setHasFixedSize(true)
+            listaSeparador!!.addOnScrollListener(scrollListeners[1]!!)
+        }
+
+    }
+
+    fun listaGuardadaAListaAMostrarActualizando(listaGuardada: ArrayList<AppGuardable>, listaDelCelu: ArrayList<AppInfo>): List<AppInfo> {
+        var listaAMostrar = arrayOfNulls<AppInfo>(listaDelCelu.size)
+        var cantidadDeAppsAAgregar = 0
+        for (x in 0..listaDelCelu.size-1) { //¿Esto está bien?
+            var existeEnGuardados = true
+            for (y in 0..listaGuardada.size-1) { //¿Esto está bien?
+                if(listaDelCelu[x].packageName == listaGuardada[y].packageName){
+                    listaAMostrar.set(y, listaDelCelu[x])
+                    existeEnGuardados = true
+                }
+            }
+            if (existeEnGuardados == false){
+                cantidadDeAppsAAgregar++
+                listaAMostrar.set( (listaGuardada.size+cantidadDeAppsAAgregar), listaDelCelu[x] )
+            }
+        }
+        return listaAMostrar.filterNotNull()
+    }
+
+    fun listaMostrableAListaGuardable(listaIn: ArrayList<AppInfo>): ArrayList<AppGuardable>{
+        var listaNueva = ArrayList<AppGuardable>()
+        for (i in 0..listaIn.size-1) { //¿Esto está bien?
+            val appNueva = appMostrableAAppGuardable(listaIn[i])
+            listaNueva.add(appNueva)
+        }
+        return listaNueva
+    }
+
+    fun appMostrableAAppGuardable(app: AppInfo): AppGuardable{
+        return AppGuardable(app.label, app.packageName, app.color)
+    }
+
+    var accion: MotionEvent? = null
+    class PasadorDeClicks(var recyclerAClickar: RecyclerView) : OnItemTouchListener {
+        override fun onInterceptTouchEvent( rv: RecyclerView, e: MotionEvent ): Boolean {
+            //opciones:
+            if (e.action != MotionEvent.ACTION_MOVE) { //apreta el botón debajo del principio del scroll
+            //if (e.action != MotionEvent.ACTION_MOVE && e.action != MotionEvent.ACTION_DOWN) { //no pasa click
+            //if (e.action != MotionEvent.ACTION_MOVE && e.action == MotionEvent.ACTION_DOWN) { //no pasa click
+            //if (e.action == MotionEvent.ACTION_DOWN) { //no pasa click
+            //if (e.action == MotionEvent.ACTION_SCROLL) { //no pasa click
+            //if (e.action == MotionEvent.ACTION_UP) { //no pasa click y corta el scroll del coso
+                //val accionOriginal: MotionEvent = e
+                //var accion: MotionEvent = e                 //
+                //accion.action = MotionEvent.ACTION_DOWN     //esta línea y la de arriba por alguna razón hacen que no funcione el scroll
+                recyclerAClickar.dispatchTouchEvent(e)
+                //e.action = accionOriginal.action            //esta línea no soluciona el último comentario
+                //return true //esto solo hace que se corte el scroll con algunos
+            }
+            return false
+        }
+        override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
+        override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
+    }
+
+    class RecyclerViewDisabler : OnItemTouchListener {
+        override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+            val action = e.action
+            if (e.action == MotionEvent.ACTION_MOVE) {
+                return true
+            } else {
+                return false
             }
         }
 
-        lista?.layoutManager = layoutManager
-        lista?.adapter = adaptador
+        override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
+        override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
+    }
 
+    /*
+    override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
+        return true
+    }
+    */
+
+    fun terminarModoConfig(){
+        Configs.modoConfig = false
+        AppGetter.launch("LclObservaloConfigActivity")
+    }
+
+    override fun onBackPressed() {
+        if(Configs.modoConfig == true){
+            terminarModoConfig()
+        }
+        else{
+
+        }
     }
 
     override fun onResume(){

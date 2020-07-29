@@ -310,6 +310,66 @@ class TinyDB(appContext: Context?) {
         return objects
     }
 
+    fun getListAppInfo(
+        key: String?
+    ): ArrayList<AppInfo> {
+        val gson = Gson()
+        val objStrings = getListString(key)
+        val objects = ArrayList<AppInfo>()
+        for (jObjString in objStrings) {
+            val value = gson.fromJson(jObjString, AppInfo::class.java)
+            objects.add(value)
+        }
+        return objects
+    }
+    fun putListAppInfo(
+        key: String?,
+        objArray: ArrayList<AppInfo>
+    ) {
+        checkForNullKey(key)
+        val gson = Gson()
+        val objStrings = ArrayList<String>()
+        for (obj in objArray) {
+            objStrings.add(gson.toJson(obj))
+        }
+        putListString(key, objStrings)
+    }
+    fun getListaGuardada(
+        key: String?
+    ): ArrayList<AppGuardable> {
+        val gson = Gson()
+        val objStrings = getListString(key)
+        val objects = ArrayList<AppGuardable>()
+        for (jObjString in objStrings) {
+            val value = gson.fromJson(jObjString, AppGuardable::class.java)
+            objects.add(value)
+        }
+        return objects
+    }
+    fun putListaGuardada(
+        key: String?,
+        objArray: ArrayList<AppGuardable>
+    ) {
+        checkForNullKey(key)
+        val gson = Gson()
+        val objStrings = ArrayList<String>()
+        for (obj in objArray) {
+            objStrings.add(gson.toJson(obj))
+        }
+        putListString(key, objStrings)
+    }
+    fun putListObject(
+        key: String?,
+        objArray: ArrayList<AppInfo>
+    ) {
+        checkForNullKey(key)
+        val gson = Gson()
+        val objStrings = ArrayList<String>()
+        for (obj in objArray) {
+            objStrings.add(gson.toJson(obj))
+        }
+        putListString(key, objStrings)
+    }
 
     fun <T> getObject(key: String?, classOfT: Class<T>?): T {
         val json = getString(key)
@@ -451,18 +511,6 @@ class TinyDB(appContext: Context?) {
         putString(key, gson.toJson(obj))
     }
 
-    fun putListObject(
-        key: String?,
-        objArray: ArrayList<AppInfo>
-    ) {
-        checkForNullKey(key)
-        val gson = Gson()
-        val objStrings = ArrayList<String>()
-        for (obj in objArray) {
-            objStrings.add(gson.toJson(obj))
-        }
-        putListString(key, objStrings)
-    }
 
     /**
      * Remove SharedPreferences item with 'key'

@@ -12,10 +12,16 @@
         android:title="Pantalla de Inicio">
 
         <Preference
-            android:title="Item1"
-            android:key="Item1"
+            android:title="Configurar íconos"
+            android:key="configIconos"
             />
 
+        <SwitchPreferenceCompat
+            android:key="modoFondo"
+            android:title="Fondo de pantalla"
+            android:summary="descripción"
+            android:defaultValue="true"
+            />
         <SwitchPreferenceCompat
             android:key="modoAltoContraste"
             android:title="Modo de alto contraste"

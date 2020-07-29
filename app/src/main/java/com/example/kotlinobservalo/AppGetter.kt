@@ -3,8 +3,14 @@ package com.example.kotlinobservalo
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.Color.argb
+import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.blue
+import androidx.core.graphics.green
+import androidx.core.graphics.red
 import com.example.kotlinobservalo.Config.Configs
 import com.example.kotlinobservalo.Config.LclObservaloConfigActivity
 import java.util.*
@@ -25,34 +31,37 @@ object AppGetter {
         for (ri in allApps) {
             val label = ri.loadLabel(pm).toString()
             val packageName = ri.activityInfo.packageName
-            val icon = ri.activityInfo.loadIcon(pm)
+            val icon: Drawable = ri.activityInfo.loadIcon(pm)
+            val version = pm.getPackageInfo(packageName, 0).versionName
 
             var color = Color.RED
-            if (Configs.obtenerBoolean("modoAltoContraste") == true){
-                if (Configs.obtenerBoolean("modoNoche") == true){
-                    color = ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.app_highContrast_dark, null)
+            
+            if (Configs.obtenerBoolean("modoAltoContraste") == true) {
+                if (Configs.obtenerBoolean("modoNoche") == true) {
+                    color = ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.app_highContrast_dark,null)
+                } else {
+                    color = ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.app_highContrast_light,null)
                 }
-                else{
-                    color = ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.app_highContrast_light, null)
-                }
-            }
-            else {
+            } else {
                 if (Configs.obtenerBoolean("modoNoche") == true) {
                     color = Paint.getDominantFlatColor(icon, "dark")
                 } else {
                     color = Paint.getDominantFlatColor(icon, "light")
                 }
+                if (Configs.obtenerBoolean("modoFondo") == true) {
+                    color = argb(200, color.red, color.green, color.blue)
+                }
             }
-            if (Configs.obtenerBoolean("modoSepia") == true){
+            if (Configs.obtenerBoolean("modoSepia") == true) {
                 color = color + Color.parseColor("#D0C4A0")
             }
 
             val app = AppInfo(label, packageName, icon, color)
             appsList.add(app)
         }
+
         return appsList
     }
-
 
     fun launch(packageName:String){
         Log.d("a", packageName)
