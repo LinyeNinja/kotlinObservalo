@@ -1,14 +1,120 @@
 package com.example.kotlinobservalo
 
+/*
+Esta clase tiene todas las declaraciones de los colores de tod0 lo de la aplicación y las funciones que las devuelven según el theme actual
+Además, tiene toda función que se utilice para prosesamiento de imágenes y demás
+ */
+
+import android.app.WallpaperManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Color.argb
+import android.graphics.Color.rgb
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.Icon
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.blue
+import androidx.core.graphics.green
+import androidx.core.graphics.red
+import com.example.kotlinobservalo.Config.Configs
 import java.util.*
 
-
 object Paint {
+
+    //acá van todas las funciones que entregan el color de cosas en la aplicación
+    private val colorPrimary = rgb(0x62, 0x00, 0xEE)
+    private val colorPrimaryDark = rgb(0x37,0x00,0xB3)
+    private val colorAccent = rgb(0x03,0xDA,0xC5)
+
+    private val colorAccept = rgb(0x77,0xDD,0x77)
+
+    private val background_highContrast_light = rgb(0x0F,0x0F,0x0F)
+    val app_highContrast_light = rgb(0xF5,0xF5,0xF5)
+    private val text_highContrast_light = rgb(0x0F,0x0F,0x0F)
+
+    private val app_highContrast_dark = rgb(0x0F,0x0F,0x0F)
+    private val background_highContrast_dark = rgb(0xF5,0xF5,0xF5)
+    private val text_highContrast_dark = rgb(0xF5,0xF5,0xF5)
+
+    private val background_dark = rgb(0x00,0x00,0x00)
+    private val text_dark = argb(0xBF,0xFF,0xFF,0xFF)
+
+    private val background_light = rgb(0xF5,0xF5,0xF5)
+    private val text_light = argb(0xBF,0x00,0x00,0x00)
+
+    private val app_fondo = rgb(0x0F,0x0F,0x0F)
+
+    private val text_fondo_dark = argb(0xFF,0x00,0x00,0x00)
+    private val text_fondo_light = argb(0xFF, 0xFF, 0xFF, 0xFF)
+
+    fun colorAppLabel(): Int{
+        if (Configs.obtenerBoolean("modoAltoContraste") == true){
+            if (Configs.obtenerBoolean("modoNoche") == true){
+                return text_highContrast_dark
+            }
+            else{
+                return text_highContrast_light
+            }
+        }
+        else{
+            if (Configs.obtenerBoolean("modoFondo") == false){
+                if (Configs.obtenerBoolean("modoNoche") == true){
+                    return text_dark
+                }
+                else{
+                    return text_light
+                }
+            } else {
+                if (Configs.obtenerBoolean("modoNoche") == true) {
+                    return text_fondo_dark
+                }
+                else {
+                    return text_fondo_light
+                }
+            }
+        }
+    }
+    fun colorFondo(): Int{
+        if (Configs.obtenerBoolean("modoAltoContraste") == true){
+            if (Configs.obtenerBoolean("modoNoche") == true){
+                return background_highContrast_dark
+            }
+            else{
+                return background_highContrast_light
+            }
+        }
+        else{
+            if (Configs.obtenerBoolean("modoNoche") == true) {
+                    return background_dark
+                } else {
+                    return background_light
+                }
+        }
+    }
+
+    fun colorApp(icon: Drawable): Int{
+        var color: Int
+        if (Configs.obtenerBoolean("modoAltoContraste") == true) {
+            if (Configs.obtenerBoolean("modoNoche") == true) {
+                color = app_highContrast_dark
+            } else {
+                color = app_highContrast_light
+            }
+        } else {
+            if (Configs.obtenerBoolean("modoNoche") == true) {
+                color = getDominantFlatColor(icon, "dark")
+            } else {
+                color = getDominantFlatColor(icon, "light")
+            }
+            if (Configs.obtenerBoolean("modoFondo") == true) {
+                color = argb(200, color.red, color.green, color.blue)
+            }
+        }
+        return color
+    }
+
     /*
     fun getDominantColor(drawable: Drawable): Int {
         val bitmap = drawableToBitmap(drawable)
@@ -111,4 +217,6 @@ object Paint {
         drawable.draw(canvas)
         return bitmap
     }
+
 }
+

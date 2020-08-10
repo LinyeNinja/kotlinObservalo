@@ -34,29 +34,9 @@ object AppGetter {
             val icon: Drawable = ri.activityInfo.loadIcon(pm)
             val version = pm.getPackageInfo(packageName, 0).versionName
 
-            var color = Color.RED
-            
-            if (Configs.obtenerBoolean("modoAltoContraste") == true) {
-                if (Configs.obtenerBoolean("modoNoche") == true) {
-                    color = ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.app_highContrast_dark,null)
-                } else {
-                    color = ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.app_highContrast_light,null)
-                }
-            } else {
-                if (Configs.obtenerBoolean("modoNoche") == true) {
-                    color = Paint.getDominantFlatColor(icon, "dark")
-                } else {
-                    color = Paint.getDominantFlatColor(icon, "light")
-                }
-                if (Configs.obtenerBoolean("modoFondo") == true) {
-                    color = argb(200, color.red, color.green, color.blue)
-                }
-            }
-            if (Configs.obtenerBoolean("modoSepia") == true) {
-                color = color + Color.parseColor("#D0C4A0")
-            }
+            var color = Paint.colorApp(icon)
 
-            val app = AppInfo(label, packageName, icon, color)
+            val app = AppInfo(null, label, packageName, icon, color)
             appsList.add(app)
         }
 

@@ -7,6 +7,16 @@ El Gran Problema
 No estoy pudiendo hacer que el recyclerview con las apps reciba los clicks del recyclerview del scroll.
 Por alguna razón pasarlo solo cuando es click no funciona.
 Hacerlo constantemente y deshabilitar el scrolling del otro tampoco (algunas soluciones no funcionan o hacen que no lo pueda scrollear manualmente, otras solo funcionan  si lo apreto por un milisegundo)
+
+Clase con default parameters no funciona, AppInfo debería ser diferente
+
+index out of bounds hace que termine usando menos apps de las necesarias
+
+No funciona cambiar íconos de lugar
+Cosas que intenté:
+    mover de lugar la declaración de la lista
+    poner "isRecyclable = false" en el bindViewHolder del adapter
+    poner "lista.recycledViewPool.setMaxRecycledViews(0, 0)" acá
 */
 
 
@@ -21,9 +31,12 @@ import android.os.Bundle
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import android.view.View.GONE
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.annotation.DimenRes
+import androidx.annotation.NonNull
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
@@ -34,9 +47,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 import androidx.recyclerview.widget.RecyclerView.OnItemTouchListener
 import com.example.kotlinobservalo.Config.Configs
-import kotlinx.android.synthetic.main.app_equisemel.*
-import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.math.ceil
 
 
@@ -88,66 +98,51 @@ class MainActivity : AppCompatActivity() {
         }
 
         lista = findViewById(R.id.lista)
-        listaSeparador = findViewById(R.id.listaSeparador)
-
-
-        if (Configs.obtenerBoolean("modoAltoContraste") == true){
-            if (Configs.obtenerBoolean("modoNoche") == true){
-                lista!!.setBackgroundColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.background_highContrast_dark, null))
-            }
-            else{
-                lista!!.setBackgroundColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.background_highContrast_light, null))
-            }
-        }
-        else{
+        /*for (i:Int in 0..11) {
+            lista!!.recycledViewPool.setMaxRecycledViews(0, 0)
+        }*/
             if (Configs.obtenerBoolean("modoFondo") == true){
                 val wm = WallpaperManager.getInstance(this)
                 val d = wm.peekDrawable()
                 layout.setBackground(d) // You can also use rl.setBackgroundDrawable(getWallpaper);
             }
             else {
-                if (Configs.obtenerBoolean("modoNoche") == true) {
-                    lista!!.setBackgroundColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.background_dark, null))
-                } else {
-                    lista!!.setBackgroundColor(ResourcesCompat.getColor(Contexto.mainActivity.getResources(), R.color.background_light, null))
-                }
+                lista!!.setBackgroundColor(Paint.colorFondo())
             }
-        }
 
-
-        var listaDeApps: ArrayList<AppInfo>
+        var listaDeApps: ArrayList<AppInfo> //decalrar arriba
         listaDeApps = AppGetter.getListaDeApps(this.applicationContext)
-        val configAct = AppInfo("Configurar Launcher", "LclObservaloConfigActivity", ContextCompat.getDrawable(this, R.drawable.config), Color.RED)
+        val configAct = AppInfo(null, "Configurar Launcher", "LclObservaloConfigActivity", ContextCompat.getDrawable(this, R.drawable.config), Color.RED)
         listaDeApps.add(configAct)
+        Log.d("hola", "momento gamer")
+
+
+        //PRUEBA DE CARPETA
+        var listaDeCarpetin = ArrayList<AppInfo>()
+        for (i in 0..17){
+            val ap = AppInfo(null, "Aplicación " + i.toString(), "Aplicación " + i.toString(), ContextCompat.getDrawable(this, R.drawable.config), Color.BLUE)
+            listaDeCarpetin.add(ap)
+        }
+        val carpetin = AppInfo(listaDeCarpetin, "carpetin2", "carpetin3", null, Color.RED)
+
+        listaDeApps.add(carpetin)
+        //FIN PRUEBA DE CARPETA
 
         var listaDeAppsGuardadas = tinydb.getListaGuardada("list3")
 
-        listaDeApps = listaGuardadaAListaAMostrarActualizando(listaDeAppsGuardadas, listaDeApps).toCollection(ArrayList())
-
+        //listaDeApps = listaGuardadaAListaAMostrarActualizando(listaDeAppsGuardadas, listaDeApps).toCollection(ArrayList())
 
         layoutManager = GridLayoutManager(this, cantFilas, RecyclerView.HORIZONTAL, false)
         layoutManager!!.canScrollHorizontally()
 
         var itemDeco = ItemOffsetDecoration(separacion)
-        lista?.addItemDecoration(itemDeco)
+        lista!!.addItemDecoration(itemDeco)
 
         adaptador = AppAdapter(listaDeApps, appWidth, appHeight)
 
-
-        layoutManagerSeparador = GridLayoutManager(this, 1, RecyclerView.HORIZONTAL, false)
-//        var itemDecoSeparador = ItemOffsetDecoration(separacion)
-//        listaSeparador?.addItemDecoration(itemDecoSeparador)
-
-        var snapHelper = PagerSnapHelper()
-        snapHelper.attachToRecyclerView(listaSeparador)
-
-        var cantidadDeSeparadores: Float = listaDeApps.size.toFloat()
-        cantidadDeSeparadores = ceil(cantidadDeSeparadores/cantFilas/cantColumnas)
-        adaptadorSeparador = SeparadorAdapter(cantidadDeSeparadores.toInt(), getDisplayContentSize('w'), getDisplayContentSize('h'))
-
         //acá van las cosas sobre el modo de configuración del órden y demás:
+        val fab: View = findViewById(R.id.fab)
         if (Configs.modoConfig == true){
-            val fab: View = findViewById(R.id.fab)
             fab.setVisibility(View.VISIBLE)
             fab.setOnClickListener { view ->
                 tinydb.putListaGuardada("list3", listaMostrableAListaGuardable(listaDeApps))
@@ -160,45 +155,80 @@ class MainActivity : AppCompatActivity() {
                     override fun onMove( recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder ): Boolean {
                         val fromPos: Int = viewHolder.adapterPosition
                         val toPos: Int = target.adapterPosition
+
+                        //Método 1: //se pueden cambiar cosas entre una misma columna, pero hacerlo entre ellas y moverte deshace tod0
                         adaptador!!.swapItems(fromPos, toPos)
+                        //adaptador!!.notifyItemMoved(fromPos, toPos) //poner esto acá rompe tod0 y no arregla nada
+
+
+/*
+                        //Método2: //se pueden cambiar cosas entre columnas y filas, pero moverte mueve las cosas ligeramente de lugar (usualmente se va a la derecha)
+                        val valorPrevio = listaDeApps[fromPos]
+                        listaDeApps[fromPos] = listaDeApps[toPos]
+                        listaDeApps[toPos] = valorPrevio
+                        adaptador!!.notifyItemMoved(fromPos, toPos)
+*/
+
                         return true //true if moved, false otherwise
                     }
 
                     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                         /*
                          noteViewModel.delete(noteAdapter.getNoteAt(viewHolder.adapterPosition))
-                         Toast.makeText(
-                             this@MainActivity,
-                             getString(R.string.note_deleted),
-                             Toast.LENGTH_SHORT
-                         ).show()
                          */
+                    }
+
+                    override fun getAnimationDuration(
+                        @NonNull recyclerView: RecyclerView,
+                        animationType: Int,
+                        animateDx: Float,
+                        animateDy: Float
+                    ): Long {
+                        //acá se pueden ejecutar cosas cuando se suelta el dedo y termina el movimiento
+                        //adaptador!!.notifyDataSetChanged() //esto hace que mover cosas entre columnas se revierta
+                        return DEFAULT_DRAG_ANIMATION_DURATION.toLong()
                     }
                 }
             val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
             itemTouchHelper.attachToRecyclerView(lista)
         }
         else{
-            val fab: View = findViewById(R.id.fab)
             fab.setVisibility(View.GONE)
         }
 
         lista!!.layoutManager = layoutManager
         lista!!.adapter = adaptador
 
-        /*
-        listaSeparador!!.addOnItemTouchListener(
-            RecyclerTouchEvent( Contexto.mainActivity, listaSeparador,
-                object : RecyclerTouchEvent.ClickListener {
-                    override fun onClick(e: MotionEvent?)  {
-                        lista!!.dispatchTouchEvent(e)
-                    }
-                })
-        )*/
-
-        listaSeparador!!.addOnItemTouchListener(PasadorDeClicks(lista!!))
 
         if (snapear == true) {
+            listaSeparador = findViewById(R.id.listaSeparador)
+
+            layoutManagerSeparador = GridLayoutManager(this, 1, RecyclerView.HORIZONTAL, false)
+
+            var snapHelper = PagerSnapHelper()
+            snapHelper.attachToRecyclerView(listaSeparador)
+
+            var cantidadDeSeparadores: Float = listaDeApps.size.toFloat()
+            cantidadDeSeparadores = ceil(cantidadDeSeparadores/cantFilas/cantColumnas)
+            adaptadorSeparador = SeparadorAdapter(cantidadDeSeparadores.toInt(), getDisplayContentSize('w'), getDisplayContentSize('h'))
+
+            //clicks:
+            //listaSeparador!!.addOnItemTouchListener(PasadorDeClicks(lista!!))
+
+            /*
+            listaSeparador!!.setOnClickListener { view -> //esto hace que no funcione
+                //sin eso pasa todo
+                listaSeparador!!.addOnItemTouchListener(
+                    RecyclerTouchEvent( Contexto.mainActivity, listaSeparador,
+                        object : RecyclerTouchEvent.ClickListener {
+                            override fun onClick(e: MotionEvent?)  {
+                                lista!!.dispatchTouchEvent(e)
+                            }
+                        })
+                )
+            }
+            */
+
             listaSeparador?.layoutManager = layoutManagerSeparador
             listaSeparador?.adapter = adaptadorSeparador
 
@@ -227,14 +257,34 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun listaGuardadaAListaAMostrarActualizando(listaGuardada: ArrayList<AppGuardable>, listaDelCelu: ArrayList<AppInfo>): List<AppInfo> {
-        var listaAMostrar = arrayOfNulls<AppInfo>(listaDelCelu.size)
+        var listaAMostrar = arrayOfNulls<AppInfo>(listaDelCelu.size+5) //TODO OH GOD, ESE 5 ESTÁ PUESTO AHÍ COMPLETAMENTE ALEATORIAMENTE PORQUE ME TIRABA OUTOFBOUNDS CUANDO AGREGABA APPS
         var cantidadDeAppsAAgregar = 0
-        for (x in 0..listaDelCelu.size-1) { //¿Esto está bien?
-            var existeEnGuardados = true
-            for (y in 0..listaGuardada.size-1) { //¿Esto está bien?
-                if(listaDelCelu[x].packageName == listaGuardada[y].packageName){
-                    listaAMostrar.set(y, listaDelCelu[x])
-                    existeEnGuardados = true
+        for (x in 0..listaDelCelu.size-1) { // TODO esto está mal, faltan apps
+            var existeEnGuardados = false
+            for (y in 0..listaGuardada.size-1) { // TODO esto está mal, faltan apps
+                if (listaGuardada[y].listaCarpeta == null){ //la guardada no es una carpeta
+                    if(listaDelCelu[x].packageName == listaGuardada[y].packageName){
+                        listaAMostrar.set(y, listaDelCelu[x])
+                        existeEnGuardados = true
+                    }
+                }
+                else{ //la guardada es una carpeta
+                    val listaCarpetaObtenida = listaGuardada[y].listaCarpeta!!
+                    for (z in 0..listaCarpetaObtenida.size){
+                        if(listaDelCelu[x].packageName == listaCarpetaObtenida[z].packageName){
+                            if (listaAMostrar[y] == null){ //si la carpeta en la que está la app aún no existe la crea
+                                val listaDeCarpetin = ArrayList<AppInfo>()
+                                listaDeCarpetin.add(listaDelCelu[x])
+                                val carpetin = AppInfo(listaDeCarpetin, listaGuardada[y].label, "null", null, Color.RED)
+                                listaAMostrar.set(y, carpetin)
+                            }
+                            else{ //si la carpeta ya existe, la agrega ahí
+                                listaAMostrar[y]!!.listaCarpeta!!.set(z, listaDelCelu[x])
+                            }
+                            listaAMostrar.set(y, listaDelCelu[x])
+                            existeEnGuardados = true
+                        }
+                    }
                 }
             }
             if (existeEnGuardados == false){
@@ -255,10 +305,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun appMostrableAAppGuardable(app: AppInfo): AppGuardable{
-        return AppGuardable(app.label, app.packageName, app.color)
+        return AppGuardable(app.listaCarpeta, app.label, app.packageName, app.color)
     }
 
     var accion: MotionEvent? = null
+
     class PasadorDeClicks(var recyclerAClickar: RecyclerView) : OnItemTouchListener {
         override fun onInterceptTouchEvent( rv: RecyclerView, e: MotionEvent ): Boolean {
             //opciones:
