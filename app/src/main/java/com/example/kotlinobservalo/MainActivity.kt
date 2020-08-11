@@ -112,8 +112,13 @@ class MainActivity : AppCompatActivity() {
 
         var listaDeApps: ArrayList<AppInfo> //decalrar arriba
         listaDeApps = AppGetter.getListaDeApps(this.applicationContext)
+
         val configAct = AppInfo(null, "Configurar Launcher", "LclObservaloConfigActivity", ContextCompat.getDrawable(this, R.drawable.config), Color.RED)
         listaDeApps.add(configAct)
+
+        val llamadasAct = AppInfo(null, "Llamadas", "LclObservaloLlamadasActivity", ContextCompat.getDrawable(this, R.drawable.config), Color.RED)
+        listaDeApps.add(llamadasAct)
+
         Log.d("hola", "momento gamer")
 
 

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.Color.argb
 import android.graphics.drawable.Drawable
+import android.provider.Telephony.Sms.getDefaultSmsPackage
 import android.util.Log
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.ColorUtils
@@ -13,10 +14,11 @@ import androidx.core.graphics.green
 import androidx.core.graphics.red
 import com.example.kotlinobservalo.Config.Configs
 import com.example.kotlinobservalo.Config.LclObservaloConfigActivity
+import com.example.kotlinobservalo.KotlinLlamadas.LclObservaloLlamadas
 import java.util.*
 
-
 object AppGetter {
+
     //La siguiente función devuelve la lista de aplicaciones del sistema
     //Cada aplicación está guardada como un "AppInfo" (clase nuestra)
     //Los datos por ahora son: título, nombre de paquete e ícono, aunque también debería tener uno para el color de fondo
@@ -27,12 +29,21 @@ object AppGetter {
         i.addCategory(Intent.CATEGORY_LAUNCHER)
         val allApps = pm.queryIntentActivities(i, 0)
 
+        val defaultSms = getDefaultSmsPackage(Contexto.mainActivity)
+
         //Lo siguiente es un for que pasa por todas las aplicaciones y crea un coso para cada una
         for (ri in allApps) {
             val label = ri.loadLabel(pm).toString()
             val packageName = ri.activityInfo.packageName
-            val icon: Drawable = ri.activityInfo.loadIcon(pm)
             val version = pm.getPackageInfo(packageName, 0).versionName
+
+            val icon: Drawable
+            /*if (packageName == defaultSms) {
+                icon = R.iconpac
+            }
+            else{*/
+                icon = ri.activityInfo.loadIcon(pm)
+            //}
 
             var color = Paint.colorApp(icon)
 
@@ -53,9 +64,15 @@ object AppGetter {
                 Contexto.mainActivity.startActivity(intent)
             } catch (ignored: ClassNotFoundException) {
             }   */
-            val intent = Intent(Contexto.mainActivity, LclObservaloConfigActivity::class.java)
-            Configs.cambiado = true
-            Contexto.mainActivity.startActivity(intent)
+            if (packageName.contains("Config")){
+                val intent = Intent(Contexto.mainActivity, LclObservaloConfigActivity::class.java)
+                Configs.cambiado = true
+                Contexto.mainActivity.startActivity(intent)
+            }
+            else if (packageName.contains("Llamadas")){
+                val intent = Intent(Contexto.mainActivity, LclObservaloLlamadas::class.java)
+                Contexto.mainActivity.startActivity(intent)
+            }
         }
         else {
             val context = Contexto.app
