@@ -2,8 +2,6 @@ package com.example.kotlinobservalo.Config
 
 import androidx.preference.PreferenceManager
 import com.example.kotlinobservalo.Contexto
-import com.example.kotlinobservalo.MainActivity
-import java.util.*
 
 object Configs {
 

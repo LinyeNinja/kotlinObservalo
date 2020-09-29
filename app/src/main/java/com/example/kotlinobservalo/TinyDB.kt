@@ -9,7 +9,9 @@ import android.graphics.BitmapFactory
 import android.os.Environment
 import android.preference.PreferenceManager
 import android.text.TextUtils
-import android.util.Log
+import com.example.kotlinobservalo.ClasesDeInfo.AppGuardable
+import com.example.kotlinobservalo.ClasesDeInfo.AppInfo
+import com.example.kotlinobservalo.KotlinLlamadas.objetos.Contacto
 import com.google.gson.Gson
 import java.io.File
 import java.io.FileOutputStream
@@ -349,6 +351,30 @@ class TinyDB(appContext: Context?) {
     fun putListaGuardada(
         key: String?,
         objArray: ArrayList<AppGuardable>
+    ) {
+        checkForNullKey(key)
+        val gson = Gson()
+        val objStrings = ArrayList<String>()
+        for (obj in objArray) {
+            objStrings.add(gson.toJson(obj))
+        }
+        putListString(key, objStrings)
+    }
+    fun getListaContactos(
+        key: String?
+    ): ArrayList<Contacto> {
+        val gson = Gson()
+        val objStrings = getListString(key)
+        val objects = ArrayList<Contacto>()
+        for (jObjString in objStrings) {
+            val value = gson.fromJson(jObjString, Contacto::class.java)
+            objects.add(value)
+        }
+        return objects
+    }
+    fun putListaContactos(
+        key: String?,
+        objArray: ArrayList<Contacto>
     ) {
         checkForNullKey(key)
         val gson = Gson()

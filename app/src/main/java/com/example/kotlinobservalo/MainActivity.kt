@@ -22,6 +22,8 @@ Cosas que intenté:
 
 package com.example.kotlinobservalo
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.app.WallpaperManager
 import android.content.Context
 import android.graphics.Color
@@ -31,22 +33,28 @@ import android.os.Bundle
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import android.view.View.GONE
-import android.view.ViewGroup
+import android.view.View.*
 import android.view.WindowManager
+import android.widget.Button
 import android.widget.FrameLayout
 import androidx.annotation.DimenRes
-import androidx.annotation.NonNull
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 import androidx.recyclerview.widget.RecyclerView.OnItemTouchListener
+import com.example.kotlinobservalo.ClasesDeInfo.AppGuardable
+import com.example.kotlinobservalo.ClasesDeInfo.AppInfo
 import com.example.kotlinobservalo.Config.Configs
+import com.example.kotlinobservalo.Contexto.app
+import com.example.kotlinobservalo.Paint.appHeight
+import com.example.kotlinobservalo.Paint.appWidth
+import java.lang.Math.abs
+import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.ceil
 
 
@@ -62,15 +70,15 @@ class MainActivity : AppCompatActivity() {
     var layoutManager:RecyclerView.LayoutManager? = null
     var adaptador:AppAdapter? = null
 
+    public lateinit var layout: FrameLayout
+
+    lateinit var listaDeApps: ArrayList<AppInfo>
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        Paint.alturaDeLaPantalla = getDisplayContentSize('h')
+        Paint.anchuraDeLaPantalla = getDisplayContentSize('w')
 
         val tinydb = TinyDB(this)
-
-        //if (alibaba == false){
-        //    getApplication().setTheme(android.R.style.Theme_Black_NoTitleBar_Fullscreen)
-        //    alibaba = true
-        //    reload()
-        //}
 
         Contexto.mainActivity = this
         Contexto.app = this.applicationContext
@@ -78,10 +86,15 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val layout: FrameLayout = findViewById(R.id.LinearLayout)
+        //TODO esto no funciona ¿razón?
+/*
+        val scalingFactor = 0.5f // scale down to half the size
+        View.setScaleX(scalingFactor)
+        View.setScaleY(scalingFactor)
+*/
 
-        var appWidth = 10
-        var appHeight = 10
+        layout = findViewById(R.id.LinearLayout)
+
         var separacion = 5
         var cantFilas = 0
         var cantColumnas = Configs.cantColumnas()
@@ -110,32 +123,41 @@ class MainActivity : AppCompatActivity() {
                 lista!!.setBackgroundColor(Paint.colorFondo())
             }
 
-        var listaDeApps: ArrayList<AppInfo> //decalrar arriba
         listaDeApps = AppGetter.getListaDeApps(this.applicationContext)
 
-        val configAct = AppInfo(null, "Configurar Launcher", "LclObservaloConfigActivity", ContextCompat.getDrawable(this, R.drawable.config), Color.RED)
+        val configAct = AppInfo(
+            null,
+            "Configurar Launcher",
+            "LclObservaloConfigActivity",
+            ContextCompat.getDrawable(this, R.drawable.config),
+            Color.RED
+        )
         listaDeApps.add(configAct)
 
-        val llamadasAct = AppInfo(null, "Llamadas", "LclObservaloLlamadasActivity", ContextCompat.getDrawable(this, R.drawable.config), Color.RED)
+        val llamadasAct = AppInfo(
+            null,
+            "Llamadas",
+            "LclObservaloLlamadasActivity",
+            ContextCompat.getDrawable(this, R.drawable.config),
+            Color.RED
+        )
         listaDeApps.add(llamadasAct)
 
-        Log.d("hola", "momento gamer")
-
-
-        //PRUEBA DE CARPETA
-        var listaDeCarpetin = ArrayList<AppInfo>()
-        for (i in 0..17){
-            val ap = AppInfo(null, "Aplicación " + i.toString(), "Aplicación " + i.toString(), ContextCompat.getDrawable(this, R.drawable.config), Color.BLUE)
-            listaDeCarpetin.add(ap)
-        }
-        val carpetin = AppInfo(listaDeCarpetin, "carpetin2", "carpetin3", null, Color.RED)
-
-        listaDeApps.add(carpetin)
-        //FIN PRUEBA DE CARPETA
+        val lupaAct = AppInfo(
+            null,
+            "Lupa",
+            "LclObservaloLupa",
+            ContextCompat.getDrawable(this, R.drawable.config),
+            Color.RED
+        )
+        listaDeApps.add(lupaAct)
 
         var listaDeAppsGuardadas = tinydb.getListaGuardada("list3")
 
-        //listaDeApps = listaGuardadaAListaAMostrarActualizando(listaDeAppsGuardadas, listaDeApps).toCollection(ArrayList())
+        listaDeApps = listaGuardadaAListaAMostrarActualizando(listaDeAppsGuardadas, listaDeApps).toCollection(ArrayList())
+
+        var listaDeInvisibles = getListaDeInvisibles(listaDeApps)
+        listaDeApps = purgeInvisibles(listaDeApps)
 
         layoutManager = GridLayoutManager(this, cantFilas, RecyclerView.HORIZONTAL, false)
         layoutManager!!.canScrollHorizontally()
@@ -143,16 +165,66 @@ class MainActivity : AppCompatActivity() {
         var itemDeco = ItemOffsetDecoration(separacion)
         lista!!.addItemDecoration(itemDeco)
 
-        adaptador = AppAdapter(listaDeApps, appWidth, appHeight)
+        fun onConfigHappenedInAppAdapter(evento: String, packageName: String){
+            if (evento == "appEscondida"){
+                ocultarUnaAppYNotificarAlRecycler(null, packageName)
+            }
+            else if (evento == "appDesinstalada"){
+                desinstalarUnaAppYNotificarAlRecycler(null, packageName)
+            }
+            else if (evento == "appSacadaDeCarpeta"){
+                sacarUnaAppDeCarpetaYNotificarAlRecycler(packageName)
+            }
+            else if (evento.contains("tituloCarpetaEditada")){
+                val position = evento.last()
+                cambiarNombreCarpeta(position.toInt(), packageName)
+            }
+        }
+
+        adaptador = AppAdapter(listaDeApps){ evento, pos -> onConfigHappenedInAppAdapter(evento, pos) }
 
         //acá van las cosas sobre el modo de configuración del órden y demás:
         val fab: View = findViewById(R.id.fab)
+        val borrarOCarpeta: View = findViewById(R.id.borrarOCarpeta)
         if (Configs.modoConfig == true){
-            fab.setVisibility(View.VISIBLE)
+            if (listaDeInvisibles.size > 0){
+                listaDeApps.addAll(listaDeInvisibles)
+            }
+
+            fab.visibility = View.VISIBLE
             fab.setOnClickListener { view ->
                 tinydb.putListaGuardada("list3", listaMostrableAListaGuardable(listaDeApps))
                 terminarModoConfig()
             }
+
+            borrarOCarpeta.visibility = View.INVISIBLE
+            val duracionAnimacionBotones = 500.toLong()
+            val borrarOCarpeta_borrar = borrarOCarpeta.findViewById<Button>(R.id.borrar)
+            val borrarOCarpeta_carpeta = borrarOCarpeta.findViewById<Button>(R.id.carpeta)
+            var x = 0f
+            var y = 0f
+            var enBotonBorrar = false
+            var enBotonCarpeta = false
+            var appAgarrada: Int? = null
+            var carpetaDestino: Int? = null
+
+            lista!!.setOnTouchListener(OnTouchListener { v, event ->
+                if (borrarOCarpeta.visibility == VISIBLE) {
+                    x = event.x
+                    y = event.y
+                    if (y < borrarOCarpeta_borrar.bottom && x < borrarOCarpeta_borrar.right && x > borrarOCarpeta_borrar.left) { //está hoveriando sobre borrar
+                        enBotonBorrar = true
+                    }else{
+                        enBotonBorrar = false
+                    }
+                    if (y < borrarOCarpeta_carpeta.bottom && x < borrarOCarpeta_carpeta.right && x > borrarOCarpeta_carpeta.left) { //está hoveriando sobre carpeta
+                        enBotonCarpeta = true
+                    }else{
+                        enBotonCarpeta = false
+                    }
+                }
+                false
+            })
 
             val itemTouchHelperCallback =
                 object :
@@ -161,19 +233,28 @@ class MainActivity : AppCompatActivity() {
                         val fromPos: Int = viewHolder.adapterPosition
                         val toPos: Int = target.adapterPosition
 
-                        //Método 1: //se pueden cambiar cosas entre una misma columna, pero hacerlo entre ellas y moverte deshace tod0
-                        adaptador!!.swapItems(fromPos, toPos)
-                        //adaptador!!.notifyItemMoved(fromPos, toPos) //poner esto acá rompe tod0 y no arregla nada
+                        appAgarrada = null
 
-
-/*
-                        //Método2: //se pueden cambiar cosas entre columnas y filas, pero moverte mueve las cosas ligeramente de lugar (usualmente se va a la derecha)
-                        val valorPrevio = listaDeApps[fromPos]
-                        listaDeApps[fromPos] = listaDeApps[toPos]
-                        listaDeApps[toPos] = valorPrevio
-                        adaptador!!.notifyItemMoved(fromPos, toPos)
-*/
-
+                        if(listaDeApps[toPos].packageName == "carpeta"){    //si lo tira a una carpeta
+                            if(appAgarrada == null){
+                                appAgarrada = fromPos
+                            }
+                            carpetaDestino = toPos
+                        } else {                                            //si lo tira a una posición común:
+                            appAgarrada = toPos
+                            carpetaDestino = null
+                            if (fromPos < toPos) {
+                                for (i in fromPos until toPos) {
+                                    Collections.swap(listaDeApps, i, i + 1)
+                                }
+                            } else {
+                                for (i in fromPos downTo toPos + 1) {
+                                    Collections.swap(listaDeApps, i, i - 1)
+                                }
+                            }
+                            //notifyItemMoved(fromPosition, toPosition)
+                            adaptador!!.notifyItemMoved(fromPos, toPos)
+                        }
                         return true //true if moved, false otherwise
                     }
 
@@ -183,22 +264,85 @@ class MainActivity : AppCompatActivity() {
                          */
                     }
 
-                    override fun getAnimationDuration(
-                        @NonNull recyclerView: RecyclerView,
-                        animationType: Int,
-                        animateDx: Float,
-                        animateDy: Float
-                    ): Long {
-                        //acá se pueden ejecutar cosas cuando se suelta el dedo y termina el movimiento
-                        //adaptador!!.notifyDataSetChanged() //esto hace que mover cosas entre columnas se revierta
-                        return DEFAULT_DRAG_ANIMATION_DURATION.toLong()
+                    override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {
+                        super.onSelectedChanged(viewHolder, actionState)
+                        when (actionState) {
+                            ItemTouchHelper.ACTION_STATE_DRAG -> { //cuando se empieza a mover la app agarrada
+                                viewHolder?.also { appAgarrada = it.adapterPosition }
+                                if(borrarOCarpeta.visibility != VISIBLE) {
+                                    borrarOCarpeta.setAlpha(0f);
+                                    borrarOCarpeta.visibility = VISIBLE
+                                    borrarOCarpeta.animate()
+                                        .alpha(1f)
+                                        .setDuration(duracionAnimacionBotones)
+                                        .setListener(null);
+                                }
+                            }
+                            ItemTouchHelper.ACTION_STATE_IDLE -> { //cuando se suelta la app agarrada
+                                //if (carpetaDestino != null && appAgarrada != null && listaDeApps[carpetaDestino!!].listaCarpeta != null){ //si se está tirando sobre una carpeta}
+                                if(carpetaDestino != null && appAgarrada != null){
+                                    try {
+                                        listaDeApps[carpetaDestino!!].listaCarpeta!!.add(listaDeApps[appAgarrada!!])
+                                        listaDeApps.removeAt(appAgarrada!!)
+                                        adaptador!!.notifyDataSetChanged()
+                                        borrarOCarpeta.animate()
+                                        .alpha(0f)
+                                        .setDuration(duracionAnimacionBotones)
+                                        .setListener(object : AnimatorListenerAdapter() {
+                                            override fun onAnimationEnd(animation: Animator?) {
+                                                borrarOCarpeta.setVisibility(GONE)
+                                            }
+                                        })
+                                    } catch(e: Exception){
+                                        Log.d("ERRORappAgarrada:", listaDeApps[appAgarrada!!].label)
+                                        Log.d("ERRORcarpetaDestino:", listaDeApps[carpetaDestino!!].label)
+                                    }
+                                }
+                                else{
+                                if(borrarOCarpeta.visibility == VISIBLE) {
+                                    if(enBotonBorrar && appAgarrada != null){
+                                        ocultarUnaAppYNotificarAlRecycler(appAgarrada)
+                                    }
+                                    if(enBotonCarpeta && appAgarrada != null){
+                                        //crear una carpeta con la app seleccionada:
+                                        val listaDeCarpetaNueva = ArrayList<AppInfo>()
+                                        listaDeCarpetaNueva.add(listaDeApps[appAgarrada!!])
+                                        listaDeApps.removeAt(appAgarrada!!)
+
+                                        val carpetaNueva =
+                                            AppInfo(
+                                                listaDeCarpetaNueva,
+                                                "carpeta nueva",
+                                                "carpeta",
+                                                null,
+                                                Color.RED
+                                            )
+
+                                        listaDeApps.add(appAgarrada!!, carpetaNueva)
+
+                                        adaptador!!.notifyDataSetChanged()
+                                    }
+                                    borrarOCarpeta.animate()
+                                        .alpha(0f)
+                                        .setDuration(duracionAnimacionBotones)
+                                        .setListener(object : AnimatorListenerAdapter() {
+                                            override fun onAnimationEnd(animation: Animator?) {
+                                                borrarOCarpeta.setVisibility(GONE)
+                                            }
+                                        })
+                                }
+                                }
+                            }
+                        }
                     }
                 }
+
             val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
             itemTouchHelper.attachToRecyclerView(lista)
         }
         else{
-            fab.setVisibility(View.GONE)
+            fab.visibility = View.GONE
+            borrarOCarpeta.visibility = View.GONE
         }
 
         lista!!.layoutManager = layoutManager
@@ -222,7 +366,7 @@ class MainActivity : AppCompatActivity() {
 
             /*
             listaSeparador!!.setOnClickListener { view -> //esto hace que no funcione
-                //sin eso pasa todo
+                //sin eso pasa tod0
                 listaSeparador!!.addOnItemTouchListener(
                     RecyclerTouchEvent( Contexto.mainActivity, listaSeparador,
                         object : RecyclerTouchEvent.ClickListener {
@@ -261,56 +405,233 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    fun listaGuardadaAListaAMostrarActualizando(listaGuardada: ArrayList<AppGuardable>, listaDelCelu: ArrayList<AppInfo>): List<AppInfo> {
-        var listaAMostrar = arrayOfNulls<AppInfo>(listaDelCelu.size+5) //TODO OH GOD, ESE 5 ESTÁ PUESTO AHÍ COMPLETAMENTE ALEATORIAMENTE PORQUE ME TIRABA OUTOFBOUNDS CUANDO AGREGABA APPS
-        var cantidadDeAppsAAgregar = 0
-        for (x in 0..listaDelCelu.size-1) { // TODO esto está mal, faltan apps
-            var existeEnGuardados = false
-            for (y in 0..listaGuardada.size-1) { // TODO esto está mal, faltan apps
-                if (listaGuardada[y].listaCarpeta == null){ //la guardada no es una carpeta
-                    if(listaDelCelu[x].packageName == listaGuardada[y].packageName){
-                        listaAMostrar.set(y, listaDelCelu[x])
-                        existeEnGuardados = true
-                    }
-                }
-                else{ //la guardada es una carpeta
-                    val listaCarpetaObtenida = listaGuardada[y].listaCarpeta!!
-                    for (z in 0..listaCarpetaObtenida.size){
-                        if(listaDelCelu[x].packageName == listaCarpetaObtenida[z].packageName){
-                            if (listaAMostrar[y] == null){ //si la carpeta en la que está la app aún no existe la crea
-                                val listaDeCarpetin = ArrayList<AppInfo>()
-                                listaDeCarpetin.add(listaDelCelu[x])
-                                val carpetin = AppInfo(listaDeCarpetin, listaGuardada[y].label, "null", null, Color.RED)
-                                listaAMostrar.set(y, carpetin)
+    //A CONTINUACIÓN, FUNCIONES QUE MODIFICAN A LA LISTA DE APPS Y AL RECYCLERVIEW, POR LO QUE SOLO DEBERÍAN LLAMARSE CON UNO BIEN ACTIVO Y DEMÁS//
+    fun ocultarUnaAppYNotificarAlRecycler(posApp: Int?, packageName: String? = null){
+        if (posApp != null){ //si se quiere hacer mediante la posición en el recycler
+            listaDeApps[posApp].visible = false
+            listaDeApps.add(listaDeApps[posApp])
+            listaDeApps.removeAt(posApp)
+        }
+        else{ //si se quiere hacer mediante el nombre )
+            for (i in 0..listaDeApps.size-1) {
+                if (listaDeApps[i].listaCarpeta != null) {
+                    val listaCarpeta = listaDeApps[i].listaCarpeta
+                    for (j in 0..listaCarpeta!!.size - 1) {
+                        if(listaCarpeta[j].packageName == packageName){
+                            listaCarpeta[j].visible = false
+                            listaDeApps.add(listaCarpeta[j])
+                            listaCarpeta.removeAt(j)
+                            if (listaDeApps[i].listaCarpeta!!.size == 0){
+                                listaDeApps.removeAt(i)
                             }
-                            else{ //si la carpeta ya existe, la agrega ahí
-                                listaAMostrar[y]!!.listaCarpeta!!.set(z, listaDelCelu[x])
-                            }
-                            listaAMostrar.set(y, listaDelCelu[x])
-                            existeEnGuardados = true
                         }
                     }
                 }
             }
-            if (existeEnGuardados == false){
-                cantidadDeAppsAAgregar++
-                listaAMostrar.set( (listaGuardada.size+cantidadDeAppsAAgregar), listaDelCelu[x] )
+        }
+        adaptador!!.notifyDataSetChanged()
+    }
+    fun desinstalarUnaAppYNotificarAlRecycler(posApp: Int? = null, packageName: String){
+        var nombreDelPaquete = packageName
+        if (posApp != null){ //si se quiere hacer mediante la posición en el recycler
+            listaDeApps[posApp].visible = false
+            listaDeApps.add(listaDeApps[posApp])
+            listaDeApps.removeAt(posApp)
+            nombreDelPaquete = listaDeApps[posApp].packageName
+        }
+        else{ //si se quiere hacer mediante el nombre )
+            for (i in 0..listaDeApps.size-1) {
+                if (listaDeApps[i].listaCarpeta != null) {
+                    val listaCarpeta = listaDeApps[i].listaCarpeta
+                    for (j in 0..listaCarpeta!!.size - 1) {
+                        if(listaCarpeta[j].packageName == nombreDelPaquete){
+                            listaCarpeta.removeAt(j)
+                            if (listaDeApps[i].listaCarpeta!!.size == 0){
+                                listaDeApps.removeAt(i)
+                            }
+                        }
+                    }
+                }
+                if(listaDeApps[i].packageName == nombreDelPaquete){
+                    listaDeApps.removeAt(i)
+                }
             }
         }
+        adaptador!!.notifyDataSetChanged()
+        AppGetter.uninstall(nombreDelPaquete)
+    }
+    fun cambiarNombreCarpeta(position: Int, label: String){
+        listaDeApps[position].label = label
+    }
+
+
+    fun sacarUnaAppDeCarpetaYNotificarAlRecycler(packageName: String? = null){
+            for (i in 0..listaDeApps.size-1) {
+                if (listaDeApps[i].listaCarpeta != null) {
+                    val listaCarpeta = listaDeApps[i].listaCarpeta
+                    for (j in 0..listaCarpeta!!.size - 1) {
+                        if(listaCarpeta[j].packageName == packageName){
+                            listaDeApps.add(i+1, listaCarpeta[j])
+                            listaDeApps[i].listaCarpeta!!.removeAt(j)
+                            if (listaDeApps[i].listaCarpeta!!.size == 0){
+                                listaDeApps.removeAt(i)
+                            }
+                        }
+                    }
+                }
+            }
+        adaptador!!.notifyDataSetChanged()
+    }
+    //FIN DE FUNCIONES QUE MODIFICAN A LA LISTA DE APPS Y AL RECYCLERVIEW//
+
+    fun getListaDeInvisibles(listaIn: ArrayList<AppInfo>): ArrayList<AppInfo>{
+        val listaOut = ArrayList<AppInfo>()
+        for (i in 0..listaIn.size-1){
+            if(listaIn[i].visible == false){
+                Log.d("invisible: ", listaIn[i].label)
+                listaOut.add(listaIn[i])
+            }
+        }
+        return listaOut
+    }
+
+    fun purgeInvisibles(listaIn: ArrayList<AppInfo>): ArrayList<AppInfo>{
+        for (i in listaIn.size-1 downTo 0){ //TODO ese 2 me da miedo
+            Log.d("purgi", i.toString())
+            if(listaIn[i].visible == false){
+                Log.d("purged: ", listaIn[i].label)
+                listaIn.removeAt(i)
+            }
+            else{
+                Log.d("visible: ", listaIn[i].label)
+            }
+        }
+        return listaIn
+    }
+
+    fun listaGuardadaAListaAMostrarActualizando(listaGuardada: ArrayList<AppGuardable>, listaDelCelu: ArrayList<AppInfo>): List<AppInfo> {
+        var listaAMostrar =
+            arrayOfNulls<AppInfo>(listaDelCelu.size + 5) //TODO OH GOD, ESTO ESTÁ TOTALMENTE MAL Y ES TERRIBLEMENTE INEFICIENTE
+        var cantidadDeAppsAAgregar = 0
+        var carpetaAgregandoActual = 0
+        var cantidadDeCarpetasAgregadas = 0
+
+        val listaDeCarpetas = ArrayList<ArrayList<Int>>()
+        //encontrar las carpetas:
+        for (y in 0..listaGuardada.size-1) {
+            if(listaGuardada[y].packageName == "carpeta"){
+                val numCarpetaActual = (abs(listaGuardada[y].listaCarpeta!!))
+                listaDeCarpetas.add(ArrayList())
+                listaDeCarpetas[(listaDeCarpetas.size-1)].add(y)
+                listaDeCarpetas[(listaDeCarpetas.size-1)].add(numCarpetaActual)
+                listaAMostrar.set(y,
+                    AppInfo(
+                        ArrayList(),
+                        listaGuardada[y].label,
+                        "carpeta",
+                        null,
+                        Color.RED
+                    )
+                )
+            }
+        }
+        //agregar las apps:
+        for (x in 0..listaDelCelu.size-1) {
+            var existeEnGuardados = false
+            for (y in 0..listaGuardada.size-1) {
+                if (listaGuardada[y].listaCarpeta == null){ //la guardada no es una carpeta
+                    if(listaDelCelu[x].packageName == listaGuardada[y].packageName){
+                        listaDelCelu[x].visible = listaGuardada[y].visible
+                        listaAMostrar.set(y, listaDelCelu[x])
+                        if(listaGuardada[y].visible == false){
+                            Log.d("invisiblealcargarse: ", listaGuardada[y].label)
+                        }
+                        existeEnGuardados = true
+                    }
+                }
+                /*
+                else if (listaGuardada[y].packageName == "carpeta" && listaAMostrar[y] == null){ //la app guardada es una carpeta, esta no existe en las mostradas y la app del celu actual pertenece a ella
+                        if (abs(listaGuardada[y+1].listaCarpeta!!) == abs(listaGuardada[y].listaCarpeta!!)){
+                            carpetaAgregandoActual = y
+                            Log.d("agregar a:", carpetaAgregandoActual.toString())
+                            listaAMostrar.set(carpetaAgregandoActual, AppInfo(ArrayList(), listaGuardada[y].label, "carpeta", null, Color.RED))
+                        }
+                }
+                */
+                else if (listaGuardada[y].listaCarpeta != null && listaGuardada[y].listaCarpeta!! > 0 && listaGuardada[y].packageName != "carpeta") { //la guardada es de una carpeta
+                            if(listaDelCelu[x].packageName == listaGuardada[y].packageName){
+                                var indiceDeLaCarpeta = 0
+                                for (i in 0..listaDeCarpetas.size-1){
+                                    if (listaDeCarpetas[i][1] == listaGuardada[y].listaCarpeta){
+                                        indiceDeLaCarpeta = listaDeCarpetas[i][0]
+                                    }
+                                }
+                                listaAMostrar[indiceDeLaCarpeta]!!.listaCarpeta!!.add(listaDelCelu[x])
+                                existeEnGuardados = true
+                                /*
+                                if (carpetaAgregandoActual != 0){
+                                    Log.d("agregado a:", carpetaAgregandoActual.toString())
+                                    listaAMostrar[carpetaAgregandoActual]!!.listaCarpeta!!.add(listaDelCelu[x])
+                                    existeEnGuardados = true
+                                } else{
+                                    Log.d("agregaERROR: ", listaGuardada[y].label.toString())
+                                    existeEnGuardados = true
+                                }*/
+                            }
+                }
+            }
+            if (existeEnGuardados == false){
+                cantidadDeAppsAAgregar++
+                listaAMostrar.set( (listaGuardada.size-1+cantidadDeAppsAAgregar), listaDelCelu[x] )
+            }
+        }
+
         return listaAMostrar.filterNotNull()
     }
 
-    fun listaMostrableAListaGuardable(listaIn: ArrayList<AppInfo>): ArrayList<AppGuardable>{
+    fun listaMostrableAListaGuardable(listaIn: ArrayList<AppInfo>): ArrayList<AppGuardable>{ //las que son carpetas tienen el "numeroDeCarpeta" en negativo, las que pertenecen a una en positivo (empieza en 1)
         var listaNueva = ArrayList<AppGuardable>()
-        for (i in 0..listaIn.size-1) { //¿Esto está bien?
-            val appNueva = appMostrableAAppGuardable(listaIn[i])
-            listaNueva.add(appNueva)
+        var numeroDeCarpeta = 0
+        for (i in 0..listaIn.size-1) {
+            if (listaIn[i].listaCarpeta != null) {
+                numeroDeCarpeta++
+                val carpetaNueva =
+                    AppGuardable(
+                        -numeroDeCarpeta,
+                        listaIn[i].label,
+                        "carpeta",
+                        listaIn[i].color
+                    )
+                listaNueva.add(carpetaNueva)
+                val listaCarpeta = listaIn[i].listaCarpeta!!
+                for (j in 0..listaCarpeta.size - 1) {
+                    val appNueva =
+                        AppGuardable(
+                            numeroDeCarpeta,
+                            listaCarpeta[j].label,
+                            listaCarpeta[j].packageName,
+                            listaCarpeta[j].color,
+                            listaCarpeta[j].visible
+                        )
+                    listaNueva.add(appNueva)
+                }
+            }
+            else{
+                val appNueva: AppGuardable
+                appNueva = AppGuardable(
+                    null,
+                    listaIn[i].label,
+                    listaIn[i].packageName,
+                    listaIn[i].color,
+                    listaIn[i].visible
+                )
+                if(listaIn[i].visible == false){
+                    Log.d("invisiblealguardarse: ", listaIn[i].label)
+                }
+                listaNueva.add(appNueva)
+            }
         }
         return listaNueva
-    }
-
-    fun appMostrableAAppGuardable(app: AppInfo): AppGuardable{
-        return AppGuardable(app.listaCarpeta, app.label, app.packageName, app.color)
     }
 
     var accion: MotionEvent? = null
@@ -373,10 +694,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume(){
         super.onResume()
-        if (Configs.cambiado == true){
+        /*if (Configs.cambiado == true){
             Configs.cambiado = false
             reload()
-        }
+        }*/
     }
 
     fun reload(){
@@ -411,6 +732,7 @@ class MainActivity : AppCompatActivity() {
             if (resourceId > 0) {
                 statusBarHeight = getResources().getDimensionPixelSize(resourceId)
             }
+
 
             //Encuentra el borde superior
             //val contentTop: Int = Contexto.app.findViewById(android.R.id.content).getTop()

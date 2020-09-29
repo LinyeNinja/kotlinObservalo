@@ -2,7 +2,7 @@ package com.example.kotlinobservalo
 
 /*
 Esta clase tiene todas las declaraciones de los colores de tod0 lo de la aplicación y las funciones que las devuelven según el theme actual
-Además, tiene toda función que se utilice para prosesamiento de imágenes y demás
+Además, tiene toda función que se utilice para prosesamiento de imágenes y obtención de datos acerca de la pantalla
  */
 
 import android.app.WallpaperManager
@@ -11,9 +11,11 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Color.argb
 import android.graphics.Color.rgb
+import android.graphics.Point
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.Icon
+import android.view.WindowManager
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.blue
 import androidx.core.graphics.green
@@ -22,6 +24,13 @@ import com.example.kotlinobservalo.Config.Configs
 import java.util.*
 
 object Paint {
+
+    var alturaDeLaPantalla = 0
+    var anchuraDeLaPantalla = 0
+
+    var appHeight = 0
+    var appWidth = 0
+    var separacion = 0
 
     //acá van todas las funciones que entregan el color de cosas en la aplicación
     private val colorPrimary = rgb(0x62, 0x00, 0xEE)

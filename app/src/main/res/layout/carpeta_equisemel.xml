@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/laiaut"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -13,56 +14,76 @@
     android:padding="1dp"
     android:radius="200dp">
 
-    <androidx.gridlayout.widget.GridLayout
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        app:columnCount="2"
-        app:rowCount="2">
-
-        <ImageView
-            android:id="@+id/icon4"
-            android:layout_width="12dp"
-            android:layout_height="12dp"
-            android:adjustViewBounds="true"
-            android:contentDescription="null"
-            android:focusable="false"
-            android:importantForAccessibility="no"
-            android:paddingTop="6dp"
-            android:src="@mipmap/ic_launcher" />
-
-        <ImageView
-            android:id="@+id/icon3"
-            android:layout_width="12dp"
-            android:layout_height="12dp"
-            android:adjustViewBounds="true"
-            android:contentDescription="null"
-            android:focusable="false"
-            android:importantForAccessibility="no"
-            android:paddingTop="6dp"
-            android:src="@mipmap/ic_launcher" />
-
-        <ImageView
-            android:id="@+id/icon2"
-            android:layout_width="12dp"
-            android:layout_height="12dp"
-            android:adjustViewBounds="true"
-            android:contentDescription="null"
-            android:focusable="false"
-            android:importantForAccessibility="no"
-            android:paddingTop="6dp"
-            android:src="@mipmap/ic_launcher" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/CasaDeIconos"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
         <ImageView
             android:id="@+id/icon"
-            android:layout_width="12dp"
-            android:layout_height="12dp"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="0dp"
             android:adjustViewBounds="true"
             android:contentDescription="null"
             android:focusable="false"
             android:importantForAccessibility="no"
             android:paddingTop="6dp"
-            android:src="@mipmap/ic_launcher" />
-    </androidx.gridlayout.widget.GridLayout>
+            android:src="@mipmap/ic_launcher"
+            app:layout_constraintBottom_toTopOf="@+id/icon2"
+            app:layout_constraintEnd_toStartOf="@+id/icon4"
+            app:layout_constraintHorizontal_bias="0.82"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/icon2"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="null"
+            android:focusable="false"
+            android:importantForAccessibility="no"
+            android:paddingTop="6dp"
+            android:src="@mipmap/ic_launcher"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/icon3"
+            app:layout_constraintHorizontal_bias="0.067"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/icon"
+            app:layout_constraintVertical_bias="0.542" />
+
+        <ImageView
+            android:id="@+id/icon3"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="null"
+            android:focusable="false"
+            android:importantForAccessibility="no"
+            android:paddingTop="6dp"
+            android:src="@mipmap/ic_launcher"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/icon2"
+            app:layout_constraintTop_toBottomOf="@+id/icon4"
+            app:layout_constraintVertical_bias="0.317" />
+
+        <ImageView
+            android:id="@+id/icon4"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="null"
+            android:focusable="false"
+            android:importantForAccessibility="no"
+            android:paddingTop="6dp"
+            android:src="@mipmap/ic_launcher"
+            app:layout_constraintBottom_toTopOf="@+id/icon3"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/icon"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -81,7 +102,7 @@
             android:ellipsize="end"
             android:focusable="false"
 
-            android:fontFamily="sans-serif-black"
+            android:fontFamily="@font/lexenddeca"
             android:importantForAccessibility="no"
             android:maxLines="2"
 

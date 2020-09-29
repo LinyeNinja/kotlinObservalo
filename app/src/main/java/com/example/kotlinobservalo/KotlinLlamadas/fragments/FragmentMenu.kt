@@ -45,7 +45,7 @@ class FragmentMenu : Fragment() {
         recyclerContacto.setHasFixedSize(true)
         linearLayoutManager = LinearLayoutManager(context)
         recyclerContacto.layoutManager = linearLayoutManager
-        contactosListAdapter = AdapterContactos(contactos!!) { position -> onItemClick(position) }
+        contactosListAdapter = AdapterContactos(contactos) { position -> onItemClick(position) }
         recyclerContacto.adapter = contactosListAdapter
 
         return v

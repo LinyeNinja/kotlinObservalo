@@ -2,20 +2,23 @@ package com.example.kotlinobservalo
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
-import android.graphics.Color.argb
+import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
+import android.net.Uri
+import android.provider.ContactsContract
 import android.provider.Telephony.Sms.getDefaultSmsPackage
 import android.util.Log
-import androidx.core.content.res.ResourcesCompat
-import androidx.core.graphics.ColorUtils
-import androidx.core.graphics.blue
-import androidx.core.graphics.green
-import androidx.core.graphics.red
+import androidx.core.app.ActivityCompat.startActivityForResult
+import androidx.core.content.ContextCompat
+import com.example.kotlinobservalo.ClasesDeInfo.AppInfo
 import com.example.kotlinobservalo.Config.Configs
 import com.example.kotlinobservalo.Config.LclObservaloConfigActivity
 import com.example.kotlinobservalo.KotlinLlamadas.LclObservaloLlamadas
+import com.example.kotlinobservalo.Lupa.LclObservaloLupa
 import java.util.*
+
+
+lateinit var pm: PackageManager
 
 object AppGetter {
 
@@ -23,13 +26,19 @@ object AppGetter {
     //Cada aplicación está guardada como un "AppInfo" (clase nuestra)
     //Los datos por ahora son: título, nombre de paquete e ícono, aunque también debería tener uno para el color de fondo
     fun getListaDeApps(c: Context): ArrayList<AppInfo> {
-        val pm = c.packageManager
+        pm = c.packageManager
         val appsList = ArrayList<AppInfo>()
         val i = Intent(Intent.ACTION_MAIN, null)
         i.addCategory(Intent.CATEGORY_LAUNCHER)
         val allApps = pm.queryIntentActivities(i, 0)
 
-        val defaultSms = getDefaultSmsPackage(Contexto.mainActivity)
+        val defaultSms = getDefaultApp("sms")
+        val defaultContactos = getDefaultApp("contactos")
+        val defaultLlamadas = getDefaultApp("llamadas")
+        val defaultConfig = getDefaultApp("config")
+        val defaultReloj = getDefaultApp("reloj")
+        Log.d("default: ", defaultContactos)
+        Log.d("default: ", defaultLlamadas)
 
         //Lo siguiente es un for que pasa por todas las aplicaciones y crea un coso para cada una
         for (ri in allApps) {
@@ -38,16 +47,22 @@ object AppGetter {
             val version = pm.getPackageInfo(packageName, 0).versionName
 
             val icon: Drawable
-            /*if (packageName == defaultSms) {
-                icon = R.iconpac
+            if (packageName == defaultSms) {
+                icon = ContextCompat.getDrawable(Contexto.mainActivity, R.drawable.config)!!
             }
-            else{*/
+            else{
                 icon = ri.activityInfo.loadIcon(pm)
-            //}
+            }
 
             var color = Paint.colorApp(icon)
 
-            val app = AppInfo(null, label, packageName, icon, color)
+            val app = AppInfo(
+                null,
+                label,
+                packageName,
+                icon,
+                color
+            )
             appsList.add(app)
         }
 
@@ -56,7 +71,7 @@ object AppGetter {
 
     fun launch(packageName:String){
         Log.d("a", packageName)
-        if (packageName.contains("LclObservalo")) { //!!!!Esto tiene un problema!!!! por alguna razón no funciona cuando intento pedirle que me convierta uan String a una clase, por lo que ahorita mismo esto solo puede abrir la configuracion
+        if (packageName.contains("LclObservalo")) { //!!!!Esto tiene un problema!!!! por alguna razón no funciona cuando intento pedirle que me convierta una String a una clase, por lo que ahorita mismo esto solo puede abrir la configuracion
             //val intent = Intent(Contexto.mainActivity, packageName::class.java)
             /*try {
                 val c = Class.forName(packageName)
@@ -73,12 +88,41 @@ object AppGetter {
                 val intent = Intent(Contexto.mainActivity, LclObservaloLlamadas::class.java)
                 Contexto.mainActivity.startActivity(intent)
             }
+            else if (packageName.contains("Lupa")){
+                val intent = Intent(Contexto.mainActivity, LclObservaloLupa::class.java)
+                Contexto.mainActivity.startActivity(intent)
+            }
         }
         else {
             val context = Contexto.app
             val launchAppIntent: Intent? = context.getPackageManager()
                 .getLaunchIntentForPackage(packageName)
             if (launchAppIntent != null) context.startActivity(launchAppIntent)
+        }
+    }
+
+    fun uninstall(paquete: String){
+        val intent = Intent(Intent.ACTION_DELETE)
+        intent.data = Uri.parse("package:" + paquete)
+        Contexto.mainActivity.startActivity(intent)
+    }
+
+    private fun getDefaultApp(tipo: String): String{ //necesita alguna forma de prevenir errores
+        when (tipo){
+            "sms" -> return getDefaultSmsPackage(Contexto.mainActivity)
+            "contactos" -> { //inventado, puede estar mal
+                val intent = Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI)
+                val resolveInfoList = pm.queryIntentActivities(intent, 0)
+                return resolveInfoList[0].activityInfo.packageName
+            }
+            "llamadas" -> {
+            val intent = Intent(Intent.ACTION_DIAL).addCategory(Intent.CATEGORY_DEFAULT)
+            val resolveInfoList = pm.queryIntentActivities(intent, 0)
+            return resolveInfoList[0].activityInfo.packageName
+            }
+            "config" -> return getDefaultSmsPackage(Contexto.mainActivity)
+            "reloj" -> return getDefaultSmsPackage(Contexto.mainActivity)
+            else -> return "null"
         }
     }
 }

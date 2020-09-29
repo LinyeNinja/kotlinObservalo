@@ -5,6 +5,7 @@
     <color name="colorAccent">#03DAC5</color>
 
     <color name="colorAccept">#77DD77</color>
+    <color name="colorPlus">#FFFFEB3B</color>
 
     <color name="background_highContrast_light">#0F0F0F</color>
     <color name="app_highContrast_light">#F5F5F5</color>

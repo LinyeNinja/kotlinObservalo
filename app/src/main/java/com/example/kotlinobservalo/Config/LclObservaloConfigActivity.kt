@@ -2,12 +2,9 @@ package com.example.kotlinobservalo.Config
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import android.view.KeyEvent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
-import com.example.kotlinobservalo.Contexto
 import com.example.kotlinobservalo.MainActivity
 import com.example.kotlinobservalo.R
 
