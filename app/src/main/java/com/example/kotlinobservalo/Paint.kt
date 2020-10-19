@@ -32,6 +32,8 @@ object Paint {
     var appWidth = 0
     var separacion = 0
 
+    var radio = 20f
+
     //acá van todas las funciones que entregan el color de cosas en la aplicación
     private val colorPrimary = rgb(0x62, 0x00, 0xEE)
     private val colorPrimaryDark = rgb(0x37,0x00,0xB3)
@@ -57,6 +59,9 @@ object Paint {
 
     private val text_fondo_dark = argb(0xFF,0x00,0x00,0x00)
     private val text_fondo_light = argb(0xFF, 0xFF, 0xFF, 0xFF)
+
+    private val carpetaAbierta_fondo_light = app_highContrast_light
+    private val carpetaAbierta_fondo_dark = app_highContrast_dark
 
     fun colorAppLabel(): Int{
         if (Configs.obtenerBoolean("modoAltoContraste") == true){
@@ -96,11 +101,19 @@ object Paint {
         }
         else{
             if (Configs.obtenerBoolean("modoNoche") == true) {
-                    return background_dark
-                } else {
-                    return background_light
-                }
+                return background_dark
+            } else {
+                return background_light
+            }
         }
+    }
+    fun colorCarpetaAbierta(): Int{
+            if (Configs.obtenerBoolean("modoNoche") == true){
+                return carpetaAbierta_fondo_dark
+            }
+            else{
+                return carpetaAbierta_fondo_light
+            }
     }
 
     fun colorApp(icon: Drawable): Int{

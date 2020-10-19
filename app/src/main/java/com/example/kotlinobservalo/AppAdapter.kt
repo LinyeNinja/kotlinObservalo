@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.kotlinobservalo.Botones.Btns
 import com.example.kotlinobservalo.ClasesDeInfo.AppInfo
 import com.example.kotlinobservalo.Config.Configs
+import com.example.kotlinobservalo.Paint.radio
 import com.example.kotlinobservalo.Popups.DialogCarpeta
 import com.example.kotlinobservalo.Popups.DialogOpciones
 import kotlinx.android.synthetic.main.app_equisemel.view.icon
@@ -116,7 +117,7 @@ class AppAdapter(items: MutableList<AppInfo>?, val onConfigHappened : (String, S
             */
 
             var gradientDrawable:GradientDrawable = GradientDrawable()
-            gradientDrawable.cornerRadius = 20f
+            gradientDrawable.cornerRadius = radio
 
             if (item.visible != false) {
                 gradientDrawable.setColor(item.color)

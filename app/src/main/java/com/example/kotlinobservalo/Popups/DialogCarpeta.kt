@@ -1,13 +1,17 @@
 package com.example.kotlinobservalo.Popups
 
-import android.graphics.Color
+import android.app.Dialog
+import android.content.DialogInterface
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.view.Window
 import android.widget.EditText
+import android.widget.LinearLayout
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -16,6 +20,7 @@ import com.example.kotlinobservalo.ClasesDeInfo.AppInfo
 import com.example.kotlinobservalo.Config.Configs
 import com.example.kotlinobservalo.Config.Configs.modoConfig
 import com.example.kotlinobservalo.Paint.appHeight
+import com.example.kotlinobservalo.Paint.colorCarpetaAbierta
 
 
 class DialogCarpeta(label: String, position: Int, listaCarpeta: MutableList<AppInfo>?, val onConfigHappened : (String, String) -> Unit): DialogFragment() {
@@ -33,6 +38,36 @@ class DialogCarpeta(label: String, position: Int, listaCarpeta: MutableList<AppI
         return R.style.CarpetaTheme
     }
 */
+    lateinit var v: View
+
+    override fun onCancel(dialog: DialogInterface) {
+        super.onCancel(dialog)
+        if(modoConfig) {
+            val editText: EditText = v.findViewById(R.id.tituloCarpeta)
+            val texto = editText.text.toString()
+            onConfigHappened("tituloCarpetaEditada" + position.toString(), texto)
+            Log.d("el texto se cambió a:", texto.toString())
+        }
+    }
+
+    /*
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val dialog = super.onCreateDialog(savedInstanceState)
+        dialog.window!!.requestFeature(Window.FEATURE_NO_TITLE)
+        return super.onCreateDialog(savedInstanceState)
+    }
+     */
+
+    override fun onStart() {
+        super.onStart()
+        val dialog = dialog
+        if (dialog != null) {
+            dialog.window!!.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            getDialog()!!.getWindow()!!.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT));
+            //dialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -40,14 +75,11 @@ class DialogCarpeta(label: String, position: Int, listaCarpeta: MutableList<AppI
 
     ): View? {
         super.onCreateView(inflater, container, savedInstanceState)
-        val v: View = inflater.inflate(R.layout.carpeta_abierta, container, false)
+        getDialog()!!.getWindow()!!.requestFeature(Window.FEATURE_NO_TITLE);
+        v = inflater.inflate(R.layout.carpeta_abierta, container, false)
 
         //TODO intentos de hacer que el ancho sea el máx: NADA DE ESTAS COSAS HACE LO MÁS MÍNIMO SOBRE AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         //v.minimumWidth = Paint.anchuraDeLaPantalla
-        dialog!!.window!!.setLayout(
-            ViewGroup.LayoutParams.FILL_PARENT,
-            ViewGroup.LayoutParams.FILL_PARENT
-        )
         /*
         val p = dialog!!.window!!.attributes
         p.gravity = Gravity.FILL_HORIZONTAL
@@ -66,6 +98,12 @@ class DialogCarpeta(label: String, position: Int, listaCarpeta: MutableList<AppI
         params.height = cantColumnas*appHeight+separacion*cantColumnas*2
         params.width = Paint.anchuraDeLaPantalla
 
+        var casaBackground = GradientDrawable()
+        casaBackground.cornerRadius = Paint.radio
+        casaBackground.setColor(colorCarpetaAbierta())
+        val casa = v.findViewById<LinearLayout>(R.id.casaDeCarpeta)
+        casa.background = casaBackground
+
         val layoutManagerCarpeta = GridLayoutManager(Contexto.mainActivity, cantColumnas, RecyclerView.VERTICAL, false)
 
         val itemDecoCarpeta =
@@ -78,6 +116,7 @@ class DialogCarpeta(label: String, position: Int, listaCarpeta: MutableList<AppI
     val editText: EditText = v.findViewById(R.id.tituloCarpeta)
     editText.setText(label)
     if(modoConfig){
+        /*
          val textWatcher = object : TextWatcher {
         override fun afterTextChanged(s: Editable?) {
             Log.d("el texto se cambió a:", s.toString())
@@ -98,12 +137,12 @@ class DialogCarpeta(label: String, position: Int, listaCarpeta: MutableList<AppI
         }
     }
         editText.addTextChangedListener(textWatcher)
+        */
     }
     else{
         editText.setEnabled(false)
     }
-
-
+    editText.setTextColor(Paint.colorAppLabel())
 
     carpetaRecycler.addItemDecoration(itemDecoCarpeta)
         fun onConfigHappenedInAppAdapter(evento: String, packageName: String){

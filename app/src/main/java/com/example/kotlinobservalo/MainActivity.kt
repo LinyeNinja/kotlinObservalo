@@ -1,23 +1,3 @@
-/*
-Preguntas
-error al volver de configuración a la main activity
-¿Es eficiente usar las referencias y pedir los íconos adentro del recyclerview?
-
-El Gran Problema
-No estoy pudiendo hacer que el recyclerview con las apps reciba los clicks del recyclerview del scroll.
-Por alguna razón pasarlo solo cuando es click no funciona.
-Hacerlo constantemente y deshabilitar el scrolling del otro tampoco (algunas soluciones no funcionan o hacen que no lo pueda scrollear manualmente, otras solo funcionan  si lo apreto por un milisegundo)
-
-Clase con default parameters no funciona, AppInfo debería ser diferente
-
-index out of bounds hace que termine usando menos apps de las necesarias
-
-No funciona cambiar íconos de lugar
-Cosas que intenté:
-    mover de lugar la declaración de la lista
-    poner "isRecyclable = false" en el bindViewHolder del adapter
-    poner "lista.recycledViewPool.setMaxRecycledViews(0, 0)" acá
-*/
 
 
 package com.example.kotlinobservalo
@@ -26,6 +6,7 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.app.WallpaperManager
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.Point
 import android.graphics.Rect
@@ -92,6 +73,15 @@ class MainActivity : AppCompatActivity() {
         View.setScaleX(scalingFactor)
         View.setScaleY(scalingFactor)
 */
+        when {
+            intent?.action == Intent.ACTION_PACKAGE_CHANGED -> {
+                Log.d("aaa","AAAAAAAAAAAAAAAAAAAAAAAAAAa")
+                reload()
+            }
+            else -> {
+                // Handle other intents, such as being started from the home screen
+            }
+        }
 
         layout = findViewById(R.id.LinearLayout)
 
@@ -176,7 +166,7 @@ class MainActivity : AppCompatActivity() {
                 sacarUnaAppDeCarpetaYNotificarAlRecycler(packageName)
             }
             else if (evento.contains("tituloCarpetaEditada")){
-                val position = evento.last()
+                val position = evento.filter { it.isDigit() }
                 cambiarNombreCarpeta(position.toInt(), packageName)
             }
         }
@@ -462,6 +452,7 @@ class MainActivity : AppCompatActivity() {
     }
     fun cambiarNombreCarpeta(position: Int, label: String){
         listaDeApps[position].label = label
+        adaptador!!.notifyDataSetChanged()
     }
 
 
@@ -488,7 +479,6 @@ class MainActivity : AppCompatActivity() {
         val listaOut = ArrayList<AppInfo>()
         for (i in 0..listaIn.size-1){
             if(listaIn[i].visible == false){
-                Log.d("invisible: ", listaIn[i].label)
                 listaOut.add(listaIn[i])
             }
         }
@@ -497,13 +487,10 @@ class MainActivity : AppCompatActivity() {
 
     fun purgeInvisibles(listaIn: ArrayList<AppInfo>): ArrayList<AppInfo>{
         for (i in listaIn.size-1 downTo 0){ //TODO ese 2 me da miedo
-            Log.d("purgi", i.toString())
             if(listaIn[i].visible == false){
-                Log.d("purged: ", listaIn[i].label)
                 listaIn.removeAt(i)
             }
             else{
-                Log.d("visible: ", listaIn[i].label)
             }
         }
         return listaIn
@@ -543,9 +530,6 @@ class MainActivity : AppCompatActivity() {
                     if(listaDelCelu[x].packageName == listaGuardada[y].packageName){
                         listaDelCelu[x].visible = listaGuardada[y].visible
                         listaAMostrar.set(y, listaDelCelu[x])
-                        if(listaGuardada[y].visible == false){
-                            Log.d("invisiblealcargarse: ", listaGuardada[y].label)
-                        }
                         existeEnGuardados = true
                     }
                 }
@@ -757,7 +741,6 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
-
 }
 
 
