@@ -3,6 +3,7 @@ package com.example.kotlinobservalo
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.provider.ContactsContract
@@ -46,15 +47,17 @@ object AppGetter {
             val packageName = ri.activityInfo.packageName
             val version = pm.getPackageInfo(packageName, 0).versionName
 
+            var color: Int
+
             val icon: Drawable
             if (packageName == defaultSms) {
-                icon = ContextCompat.getDrawable(Contexto.mainActivity, R.drawable.config)!!
+                icon = ContextCompat.getDrawable(Contexto.mainActivity, R.drawable.ic_mensajes)!!
+                color = Paint.makeFlatColor(Color.YELLOW)
             }
             else{
                 icon = ri.activityInfo.loadIcon(pm)
+                color = Paint.colorApp(icon)
             }
-
-            var color = Paint.colorApp(icon)
 
             val app = AppInfo(
                 null,
@@ -102,7 +105,7 @@ object AppGetter {
     }
 
     fun uninstall(paquete: String){
-        val intent = Intent(Intent.ACTION_DELETE)
+        val intent = Intent(Intent.ACTION_UNINSTALL_PACKAGE)
         intent.data = Uri.parse("package:" + paquete)
         Contexto.mainActivity.startActivity(intent)
     }

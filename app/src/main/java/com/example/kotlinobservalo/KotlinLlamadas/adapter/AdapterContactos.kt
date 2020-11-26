@@ -1,16 +1,23 @@
 package com.example.kotlinobservalo.KotlinLlamadas.adapter
 
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.DrawableRes
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.kotlinobservalo.KotlinLlamadas.objetos.Contacto
+import com.example.kotlinobservalo.Paint
 import com.example.kotlinobservalo.R
 
-class AdapterContactos (var listaContactos : MutableList<Contacto>, val onItemClick : (Int) -> Unit) : RecyclerView.Adapter<AdapterContactos.ContactosHolder>() {
+class AdapterContactos(
+    private var listaContactos: ArrayList<Contacto>,
+    val onItemClick: (Int) -> Unit
+) : RecyclerView.Adapter<AdapterContactos.ContactosHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContactosHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.llamadas_itemcontacto, parent, false)
@@ -22,20 +29,27 @@ class AdapterContactos (var listaContactos : MutableList<Contacto>, val onItemCl
         return listaContactos.size
     }
 
-    override fun onBindViewHolder(holder: AdapterContactos.ContactosHolder, position: Int) {
+    fun removeAt(position: Int) {
+        listaContactos.removeAt(position)
+        notifyItemRemoved(position)
+    }
+
+    fun onItemMove(sourcePosition: Int, targetPosition: Int) {
+        //listaContactos.add(targetPosition, listaContactos.removeAt(sourcePosition))
+        notifyItemMoved(sourcePosition, targetPosition)
+    }
+
+    override fun onBindViewHolder(holder: ContactosHolder, position: Int) {
         //Detecta la imágen y el ícono de cada ítem
         holder.setNombre(listaContactos[position].nombre)
+        holder.setNumero(listaContactos[position].numero)
         holder.setIcono(listaContactos[position].icono)
+        holder.setColor(listaContactos[position].color)
 
         //OnClick
         holder.getCardLayout().setOnClickListener {
             onItemClick(position)
         }
-    }
-
-    fun setData(newData: ArrayList<Contacto>) {
-        this.listaContactos = newData
-        this.notifyDataSetChanged()
     }
 
     //Muestra el nombre y el ícono apropiadamente
@@ -48,9 +62,22 @@ class AdapterContactos (var listaContactos : MutableList<Contacto>, val onItemCl
             txt.text = name
         }
 
-        fun setIcono(icon: Int) {
-            val ico: ImageView = view.findViewById(R.id.imgIcono);
+        fun setIcono(@DrawableRes icon: Int) {
+            val ico: ImageView = view.findViewById(R.id.imgIcono)
             ico.setImageResource(icon)
+        }
+
+        fun setNumero(numero: String) {
+            val num: TextView = view.findViewById(R.id.txtNumero)
+            num.text = numero
+        }
+
+        fun setColor(color: String) {
+            val card: CardView = view.findViewById(R.id.cardView)
+
+            card.radius = Paint.radio
+
+            card.setCardBackgroundColor(Color.parseColor(color))
         }
 
         fun getCardLayout (): CardView {
@@ -60,3 +87,4 @@ class AdapterContactos (var listaContactos : MutableList<Contacto>, val onItemCl
     }
 
 }
+

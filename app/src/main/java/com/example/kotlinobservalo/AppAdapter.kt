@@ -145,28 +145,20 @@ class AppAdapter(items: MutableList<AppInfo>?, val onConfigHappened : (String, S
 
             val cantAppsEnCarpeta = listaCarpeta.size
 
-            //TODO: ¿por qué no cambia el tamaño?
-            var tamIconoEnCarpeta = ((cellHeight * 0.5).toInt())/2
-
             holder.casaDeIconos.getLayoutParams().height = ((cellHeight * 0.5).toInt())
             holder.casaDeIconos.getLayoutParams().width = ((cellHeight * 0.5).toInt())
+            var tamIconoEnCarpeta = holder.casaDeIconos.getLayoutParams().width/2
+
+
             try{
             if (cantAppsEnCarpeta > 0){
                 holder.icon!!.setImageDrawable(listaCarpeta[0].icon!!)
-                //holder.icon!!.getLayoutParams().height = tamIconoEnCarpeta
-              //  holder.icon!!.getLayoutParams().width = tamIconoEnCarpeta
                 if (cantAppsEnCarpeta > 1){
                     holder.icon2!!.setImageDrawable(listaCarpeta[1].icon!!)
-                   // holder.icon2!!.getLayoutParams().height = tamIconoEnCarpeta
-                   // holder.icon2!!.getLayoutParams().width = tamIconoEnCarpeta
                     if (cantAppsEnCarpeta > 2){
                         holder.icon3!!.setImageDrawable(listaCarpeta[2].icon!!)
-                        //holder.icon3!!.getLayoutParams().height = tamIconoEnCarpeta
-                        //holder.icon3!!.getLayoutParams().width = tamIconoEnCarpeta
                         if (cantAppsEnCarpeta > 3){
                             holder.icon4!!.setImageDrawable(listaCarpeta[3].icon!!)
-                           // holder.icon4!!.getLayoutParams().height = tamIconoEnCarpeta
-                            //holder.icon4!!.getLayoutParams().width = tamIconoEnCarpeta
                         }
                         else{
                             holder.icon4!!.visibility = GONE
@@ -174,16 +166,32 @@ class AppAdapter(items: MutableList<AppInfo>?, val onConfigHappened : (String, S
                     }
                     else{
                         holder.icon3!!.visibility = GONE
+                        holder.icon4!!.visibility = GONE
                     }
                 }
                 else{
                     holder.icon2!!.visibility = GONE
+                    holder.icon3!!.visibility = GONE
+                    holder.icon4!!.visibility = GONE
                 }
             }
             else{
                 holder.icon!!.visibility = GONE
+                holder.icon2!!.visibility = GONE
+                holder.icon3!!.visibility = GONE
+                holder.icon4!!.visibility = GONE
             }
             }catch(e: Exception){}
+
+
+            holder.icon!!.getLayoutParams().height = tamIconoEnCarpeta
+            holder.icon!!.getLayoutParams().width = tamIconoEnCarpeta
+            holder.icon2!!.getLayoutParams().height = tamIconoEnCarpeta
+            holder.icon2!!.getLayoutParams().width = tamIconoEnCarpeta
+            holder.icon3!!.getLayoutParams().height = tamIconoEnCarpeta
+            holder.icon3!!.getLayoutParams().width = tamIconoEnCarpeta
+            holder.icon4!!.getLayoutParams().height = tamIconoEnCarpeta
+            holder.icon4!!.getLayoutParams().width = tamIconoEnCarpeta
 
             for ( i in 0..cantAppsEnCarpeta-1 ){
                 val app = listaCarpeta[i]
@@ -210,92 +218,6 @@ class AppAdapter(items: MutableList<AppInfo>?, val onConfigHappened : (String, S
                 holder.v.setOnClickListener(
                     object: View.OnClickListener {
                         override fun onClick(view: View) {
-                            /*
-                        }
-                            val popupInflater:LayoutInflater = Contexto.mainActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-                            val popupView = popupInflater.inflate(R.layout.carpeta_abierta,null)
-
-                            // Initialize a new instance of popup window
-                            val popupWindow = PopupWindow(
-                                popupView, // Custom view to show in popup window
-                                LinearLayout.LayoutParams.MATCH_PARENT, // Width of popup window
-                                LinearLayout.LayoutParams.MATCH_PARENT // Window height
-                            )
-
-                            /*// Set an elevation for the popup window
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                popupWindow.elevation = 10.0F
-                            }*/
-
-                            // If API level 23 or higher then execute the code
-                            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-                                val slideIn = Fade() //TODO estas animaciones son feas, debería hacer un ¡pop!
-                                popupWindow.enterTransition = slideIn
-                                val slideOut = Fade()
-                                popupWindow.exitTransition = slideOut
-                            }
-
-                            // Get the widgets reference from custom view
-                            val carpetaRecycler: RecyclerView = popupView.findViewById(R.id.listaCarpeta)
-                            val params: ViewGroup.LayoutParams = carpetaRecycler.getLayoutParams()
-                            val separacion = 5
-                            val cantColumnas = Configs.cantColumnas()
-                            params.height = cantColumnas*cellHeight+separacion*cantColumnas*2
-
-                            val layoutManagerCarpeta = GridLayoutManager(Contexto.mainActivity, cantColumnas, RecyclerView.VERTICAL, false)
-
-                            val itemDecoCarpeta = MainActivity.ItemOffsetDecoration(separacion)
-                            carpetaRecycler.addItemDecoration(itemDecoCarpeta)
-
-                            fun onConfigHappenedInAppAdapter(evento: String, packageName: String){
-                                onConfigHappened(evento, packageName)
-                                adaptadorCarpeta.notifyDataSetChanged()
-                                if(!(adaptadorCarpeta.items!!.size > 0)){
-                                    popupWindow.dismiss()
-                                }
-                            }
-
-                            adaptadorCarpeta = AppAdapter(listaCarpeta){ evento, pos -> onConfigHappenedInAppAdapter(evento, pos) }
-
-                            //si saco tod0 este código no funciona tampoco
-                            val label = popupView.findViewById<TextView>(R.id.tituloCarpeta)
-                            label.setBackgroundResource(android.R.color.transparent)
-                            if(Configs.modoConfig){
-                                label.setFocusable(true)
-                                label.setCursorVisible(true)
-                                label.setInputType(TYPE_CLASS_TEXT)
-                            }
-                            else{
-                                label.setCursorVisible(false)
-                                label.setFocusable(false)
-                                label.setInputType(TYPE_NULL)
-                            }
-
-
-                            carpetaRecycler.layoutManager = layoutManagerCarpeta
-                            carpetaRecycler.adapter = adaptadorCarpeta
-
-                            val fondo: ConstraintLayout = popupView.findViewById(R.id.fondo)
-                            fondo.setOnClickListener{
-                                popupWindow.dismiss() //para cerrar
-                            }
-
-                            popupWindow.setOnDismissListener {
-                                item.label = label.text.toString()
-                            }
-
-                            // Finally, show the popup window on app
-                            TransitionManager.beginDelayedTransition(patro.getParent().getParent().getParent() as ViewGroup?) //TODO PELIGROSOOOOOO!!!!
-                            popupWindow.showAtLocation(
-                                patro.getParent().getParent().getParent() as ViewGroup?, // Location to display popup window (acá lo mismo que arriba, deben ser iguales (?))
-                                Gravity.CENTER, // Exact position of layout to display popup
-                                0, // X offset
-                                0 // Y offset
-                            )
-                            Log.d("aaaaa", (patro.getParent().getParent().getParent() as ViewGroup?).)
-                            //TODO en un futúro estaría bueno hacer que la carpeta también sea un dialog para reducir el tamaño del código:
-                            */
-
                             val DialogCarpeta = DialogCarpeta(item.label, position, listaCarpeta, onConfigHappened)
                             val manager = (holder.itemView.context as FragmentActivity).supportFragmentManager
                             DialogCarpeta.show(manager, "MyFragment")

@@ -24,4 +24,7 @@
     <color name="text_fondo_dark">#FF000000</color>
     <color name="text_fondo_light">#FFFFFFFF</color>
 
+    <color name="white">#FFFFFF</color>
+    <color name="grisOscuro">#383838</color>
+
 </resources>

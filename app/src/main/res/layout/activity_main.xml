@@ -23,7 +23,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|right"
         android:layout_margin="16dp"
-        android:src="@drawable/ok"
+        android:src="@drawable/okk"
         app:backgroundTint="@color/colorAccept" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -36,16 +36,16 @@
         android:visibility="gone"
         app:backgroundTint="@color/colorPlus" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/listaSeparador"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" >
-
-    </androidx.recyclerview.widget.RecyclerView>
-
     <include
         android:id="@+id/borrarOCarpeta"
         layout="@layout/borrar_y_nuevacarpeta"
         android:visibility="gone" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/listaSeparador"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+    </androidx.recyclerview.widget.RecyclerView>
 
 </FrameLayout>

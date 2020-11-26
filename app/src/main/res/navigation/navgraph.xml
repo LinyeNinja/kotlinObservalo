@@ -1,9 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/navgraph"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navgraph"
     app:startDestination="@id/fragmentMenu">
+
     <fragment
         android:id="@+id/fragmentMenu"
         android:name="com.example.kotlinobservalo.KotlinLlamadas.fragments.FragmentMenu"
-        android:label="FragmentMenu" />
+        android:label="fragment_menu"
+        tools:layout="@layout/llamadas_fragment_menu">
+
+        <action
+            android:id="@+id/action_fragmentMenu_to_fragmentAgregar"
+            app:destination="@id/fragmentAgregar" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/fragmentAgregar"
+        android:name="com.example.kotlinobservalo.KotlinLlamadas.fragments.FragmentAgregar"
+        android:label="fragment_agregar"
+        tools:layout="@layout/llamadas_fragment_agregar">
+
+        <action
+            android:id="@+id/action_fragmentAgregar_to_fragmentMenu"
+            app:destination="@id/fragmentMenu" />
+    </fragment>
+
 </navigation>

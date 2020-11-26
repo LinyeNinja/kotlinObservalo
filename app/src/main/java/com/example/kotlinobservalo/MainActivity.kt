@@ -1,12 +1,22 @@
 
+/*
+Cosas que están mal y no sé cómo arreglar:
+no funciona desinstalar app (el permiso no anda)
+El recycler no pagina
+Las apps no se mueven como deberían al cambiarlas de lugar
+No funciona el intent de actualizaciones y demás
+Se repite el ícono en las carpetas
+*/
 
 package com.example.kotlinobservalo
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.app.WallpaperManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Color
 import android.graphics.Point
 import android.graphics.Rect
@@ -30,7 +40,6 @@ import androidx.recyclerview.widget.RecyclerView.OnItemTouchListener
 import com.example.kotlinobservalo.ClasesDeInfo.AppGuardable
 import com.example.kotlinobservalo.ClasesDeInfo.AppInfo
 import com.example.kotlinobservalo.Config.Configs
-import com.example.kotlinobservalo.Contexto.app
 import com.example.kotlinobservalo.Paint.appHeight
 import com.example.kotlinobservalo.Paint.appWidth
 import java.lang.Math.abs
@@ -51,11 +60,17 @@ class MainActivity : AppCompatActivity() {
     var layoutManager:RecyclerView.LayoutManager? = null
     var adaptador:AppAdapter? = null
 
-    public lateinit var layout: FrameLayout
+    lateinit var layout: FrameLayout
 
     lateinit var listaDeApps: ArrayList<AppInfo>
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val filter = IntentFilter("android.intent.action.PACKAGE_CHANGED")
+
+        val filter0 = IntentFilter("android.intent.action.PACKAGE_ADDED")
+        val receiver = PackageUpdatesReceiver()
+        registerReceiver(receiver, filter0) //funciona con el modo avión
+
         Paint.alturaDeLaPantalla = getDisplayContentSize('h')
         Paint.anchuraDeLaPantalla = getDisplayContentSize('w')
 
@@ -73,20 +88,13 @@ class MainActivity : AppCompatActivity() {
         View.setScaleX(scalingFactor)
         View.setScaleY(scalingFactor)
 */
-        when {
-            intent?.action == Intent.ACTION_PACKAGE_CHANGED -> {
-                Log.d("aaa","AAAAAAAAAAAAAAAAAAAAAAAAAAa")
-                reload()
-            }
-            else -> {
-                // Handle other intents, such as being started from the home screen
-            }
-        }
 
         layout = findViewById(R.id.LinearLayout)
 
         var separacion = 5
         var cantFilas = 0
+
+        if (Configs.cantColumnas() == 0) Configs.cantColumnas(1)
         var cantColumnas = Configs.cantColumnas()
 
         appWidth = getDisplayContentSize('w')/cantColumnas - separacion*2
@@ -119,8 +127,8 @@ class MainActivity : AppCompatActivity() {
             null,
             "Configurar Launcher",
             "LclObservaloConfigActivity",
-            ContextCompat.getDrawable(this, R.drawable.config),
-            Color.RED
+            ContextCompat.getDrawable(this, R.drawable.ic_config),
+            Paint.makeFlatColor(Color.GRAY)
         )
         listaDeApps.add(configAct)
 
@@ -128,8 +136,8 @@ class MainActivity : AppCompatActivity() {
             null,
             "Llamadas",
             "LclObservaloLlamadasActivity",
-            ContextCompat.getDrawable(this, R.drawable.config),
-            Color.RED
+            ContextCompat.getDrawable(this, R.drawable.ic_llamadas_emergencia),
+            Paint.makeFlatColor(Color.RED)
         )
         listaDeApps.add(llamadasAct)
 
@@ -137,8 +145,8 @@ class MainActivity : AppCompatActivity() {
             null,
             "Lupa",
             "LclObservaloLupa",
-            ContextCompat.getDrawable(this, R.drawable.config),
-            Color.RED
+            ContextCompat.getDrawable(this, R.drawable.ic_lupa),
+            Paint.makeFlatColor(Color.BLUE)
         )
         listaDeApps.add(lupaAct)
 
@@ -225,12 +233,13 @@ class MainActivity : AppCompatActivity() {
 
                         appAgarrada = null
 
-                        if(listaDeApps[toPos].packageName == "carpeta"){    //si lo tira a una carpeta
+                        if(listaDeApps[toPos].packageName == "carpeta" && listaDeApps[fromPos].packageName != "carpeta"){    //si lo tira a una carpeta
                             if(appAgarrada == null){
                                 appAgarrada = fromPos
                             }
                             carpetaDestino = toPos
-                        } else {                                            //si lo tira a una posición común:
+                        }
+                        else {                                            //si lo tira a una posición común:
                             appAgarrada = toPos
                             carpetaDestino = null
                             if (fromPos < toPos) {
@@ -352,7 +361,7 @@ class MainActivity : AppCompatActivity() {
             adaptadorSeparador = SeparadorAdapter(cantidadDeSeparadores.toInt(), getDisplayContentSize('w'), getDisplayContentSize('h'))
 
             //clicks:
-            //listaSeparador!!.addOnItemTouchListener(PasadorDeClicks(lista!!))
+            listaSeparador!!.addOnItemTouchListener(PasadorDeClicks(lista!!))
 
             /*
             listaSeparador!!.setOnClickListener { view -> //esto hace que no funcione
@@ -393,6 +402,56 @@ class MainActivity : AppCompatActivity() {
             listaSeparador!!.addOnScrollListener(scrollListeners[1]!!)
         }
 
+    }
+
+    var accion: MotionEvent? = null
+
+    class PasadorDeClicks(var recyclerAClickar: RecyclerView) : OnItemTouchListener {
+        override fun onInterceptTouchEvent( rv: RecyclerView, e: MotionEvent ): Boolean {
+            //opciones:
+            if (e.action != MotionEvent.ACTION_MOVE && e.action != MotionEvent.ACTION_UP) { //apreta el botón debajo del principio del scroll
+                //if (e.action != MotionEvent.ACTION_MOVE && e.action != MotionEvent.ACTION_DOWN) { //no pasa click
+                //if (e.action != MotionEvent.ACTION_MOVE && e.action == MotionEvent.ACTION_DOWN) { //no pasa click
+                //if (e.action == MotionEvent.ACTION_DOWN) { //no pasa click
+                //if (e.action == MotionEvent.ACTION_SCROLL) { //no pasa click
+                //if (e.action == MotionEvent.ACTION_UP) { //no pasa click y corta el scroll del coso
+                //val accionOriginal: MotionEvent = e
+                //var accion: MotionEvent = e                 //
+                //accion.action = MotionEvent.ACTION_DOWN     //esta línea y la de arriba por alguna razón hacen que no funcione el scroll
+                recyclerAClickar.dispatchTouchEvent(e)
+                //e.action = accionOriginal.action            //esta línea no soluciona el último comentario
+                //return true //esto solo hace que se corte el scroll con algunos
+            }
+            return false
+        }
+        override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
+        override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
+    }
+
+    class RecyclerViewDisabler : OnItemTouchListener {
+        override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+            val action = e.action
+            if (e.action == MotionEvent.ACTION_MOVE) {
+                return true
+            } else {
+                return false
+            }
+        }
+
+        override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
+        override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
+    }
+
+    /*
+    override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
+        return true
+    }
+    */
+
+    class PackageUpdatesReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            Log.d("a", "se instaloooooooooooooooooooooooooooooo")
+        }
     }
 
     //A CONTINUACIÓN, FUNCIONES QUE MODIFICAN A LA LISTA DE APPS Y AL RECYCLERVIEW, POR LO QUE SOLO DEBERÍAN LLAMARSE CON UNO BIEN ACTIVO Y DEMÁS//
@@ -448,6 +507,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         adaptador!!.notifyDataSetChanged()
+        Log.d("observame","app por desinstalarse")
         AppGetter.uninstall(nombreDelPaquete)
     }
     fun cambiarNombreCarpeta(position: Int, label: String){
@@ -517,7 +577,7 @@ class MainActivity : AppCompatActivity() {
                         listaGuardada[y].label,
                         "carpeta",
                         null,
-                        Color.RED
+                        Paint.colorCarpeta()
                     )
                 )
             }
@@ -617,50 +677,6 @@ class MainActivity : AppCompatActivity() {
         }
         return listaNueva
     }
-
-    var accion: MotionEvent? = null
-
-    class PasadorDeClicks(var recyclerAClickar: RecyclerView) : OnItemTouchListener {
-        override fun onInterceptTouchEvent( rv: RecyclerView, e: MotionEvent ): Boolean {
-            //opciones:
-            if (e.action != MotionEvent.ACTION_MOVE) { //apreta el botón debajo del principio del scroll
-            //if (e.action != MotionEvent.ACTION_MOVE && e.action != MotionEvent.ACTION_DOWN) { //no pasa click
-            //if (e.action != MotionEvent.ACTION_MOVE && e.action == MotionEvent.ACTION_DOWN) { //no pasa click
-            //if (e.action == MotionEvent.ACTION_DOWN) { //no pasa click
-            //if (e.action == MotionEvent.ACTION_SCROLL) { //no pasa click
-            //if (e.action == MotionEvent.ACTION_UP) { //no pasa click y corta el scroll del coso
-                //val accionOriginal: MotionEvent = e
-                //var accion: MotionEvent = e                 //
-                //accion.action = MotionEvent.ACTION_DOWN     //esta línea y la de arriba por alguna razón hacen que no funcione el scroll
-                recyclerAClickar.dispatchTouchEvent(e)
-                //e.action = accionOriginal.action            //esta línea no soluciona el último comentario
-                //return true //esto solo hace que se corte el scroll con algunos
-            }
-            return false
-        }
-        override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
-        override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
-    }
-
-    class RecyclerViewDisabler : OnItemTouchListener {
-        override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
-            val action = e.action
-            if (e.action == MotionEvent.ACTION_MOVE) {
-                return true
-            } else {
-                return false
-            }
-        }
-
-        override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
-        override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
-    }
-
-    /*
-    override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
-        return true
-    }
-    */
 
     fun terminarModoConfig(){
         Configs.modoConfig = false

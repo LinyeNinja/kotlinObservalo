@@ -12,35 +12,31 @@
         android:title="Pantalla de Inicio">
 
         <Preference
-            android:title="Configurar íconos"
+            android:title="Configurar aplicaciones"
             android:key="configIconos"
+            android:summary="Mover aplicaciones, desinstalarlas, ocultarlas, etc."
             />
 
         <SwitchPreferenceCompat
             android:key="modoFondo"
             android:title="Fondo de pantalla"
-            android:summary="descripción"
-            android:defaultValue="true"
+            android:summary="Mostrar el fondo de pantalla detrás de las apps"
+            android:defaultValue="false"
             />
         <SwitchPreferenceCompat
-            android:key="modoAltoContraste"
+            android:key="Alto contraste"
             android:title="Modo de alto contraste"
-            android:summary="descripción"
-            />
-        <SwitchPreferenceCompat
-            android:key="modoSepia"
-            android:title="Modo sepia"
-            android:summary="descripción"
+            android:summary="(Es afectado por el tema oscuro)"
             />
         <SwitchPreferenceCompat
             android:key="modoNoche"
-            android:title="Modo noche"
-            android:summary="descripción"
+            android:title="Tema oscuro"
+            android:summary="Colores con poco brillo"
             />
 
         <SeekBarPreference
             android:key="cantColumnas"
-            android:title="Cantidad de columnas"
+            android:title="Columnas de aplicaciones"
             android:defaultValue="3"
             app:showSeekBarValue="true"
             android:max = "6"

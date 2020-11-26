@@ -63,6 +63,9 @@ object Paint {
     private val carpetaAbierta_fondo_light = app_highContrast_light
     private val carpetaAbierta_fondo_dark = app_highContrast_dark
 
+    private val carpeta_light =  argb( 0xFF, 0xFE, 0xE0, 0x98)
+    private val carpeta_dark  =  argb( 0xFF, 0xFE, 0xE0, 0x98)
+
     fun colorAppLabel(): Int{
         if (Configs.obtenerBoolean("modoAltoContraste") == true){
             if (Configs.obtenerBoolean("modoNoche") == true){
@@ -108,12 +111,32 @@ object Paint {
         }
     }
     fun colorCarpetaAbierta(): Int{
-            if (Configs.obtenerBoolean("modoNoche") == true){
-                return carpetaAbierta_fondo_dark
+        if (Configs.obtenerBoolean("modoNoche") == true){
+            return carpetaAbierta_fondo_dark
+        }
+        else{
+            return carpetaAbierta_fondo_light
+        }
+    }
+        fun colorCarpeta(): Int{
+        var color: Int
+        if (Configs.obtenerBoolean("modoAltoContraste") == true) {
+            if (Configs.obtenerBoolean("modoNoche") == true) {
+                color = app_highContrast_dark
+            } else {
+                color = app_highContrast_light
             }
-            else{
-                return carpetaAbierta_fondo_light
+        } else {
+            if (Configs.obtenerBoolean("modoNoche") == true) {
+                color = carpeta_dark
+            } else {
+                color = carpeta_light
             }
+            if (Configs.obtenerBoolean("modoFondo") == true) {
+                color = argb(200, color.red, color.green, color.blue)
+            }
+        }
+        return color
     }
 
     fun colorApp(icon: Drawable): Int{
@@ -197,19 +220,42 @@ object Paint {
     }
 
     open fun getDominantFlatColor(drawable: Drawable, mode: String): Int {
-        if (mode == "light") {
-            val hsv = FloatArray(3)
-            Color.colorToHSV(getDominantColor(drawable), hsv)
-            hsv[2] = 1f
-            hsv[1] = 0.4f
-            return Color.HSVToColor(hsv)
+        return makeFlatColor(getDominantColor(drawable))
+    }
+
+    open fun makeFlatColor(color: Int): Int {
+        var outColor: Int
+        if (Configs.obtenerBoolean("modoAltoContraste") == true) {
+            if (Configs.obtenerBoolean("modoNoche") == true) {
+                outColor = app_highContrast_dark
+            } else {
+                outColor = app_highContrast_light
+            }
         } else {
-            val hsv = FloatArray(3)
-            Color.colorToHSV(getDominantColor(drawable), hsv)
-            hsv[2] = 0.2f
-            hsv[1] = 0.4f
-            return Color.HSVToColor(hsv)
+            if (Configs.obtenerBoolean("modoNoche") == true) {
+                val hsv = FloatArray(3)
+                Color.colorToHSV(color, hsv)
+                hsv[2] = 0.2f
+                hsv[1] = 0.4f
+                return Color.HSVToColor(hsv)
+            } else {
+                val hsv = FloatArray(3)
+                Color.colorToHSV(color, hsv)
+                if(hsv[1] == 0f){ //si es negro/gris/blanco
+                    hsv[2] = 0.7f
+                    hsv[1] = 0f
+                }
+                else{
+                    hsv[2] = 1f
+                    hsv[1] = 0.4f
+                }
+                return Color.HSVToColor(hsv)
+            }
         }
+        if (Configs.obtenerBoolean("modoFondo") == true) {
+            outColor = argb(200, color.red, color.green, color.blue)
+        }
+        return Color.RED
     }
 
 
