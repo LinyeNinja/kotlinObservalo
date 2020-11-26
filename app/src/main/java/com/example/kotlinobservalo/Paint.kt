@@ -159,6 +159,31 @@ object Paint {
         }
         return color
     }
+    fun colorObservaloApp(packageName: String): Int{
+        var color: Int
+        if (Configs.obtenerBoolean("modoAltoContraste") == true) {
+            if (Configs.obtenerBoolean("modoNoche") == true) {
+                color = app_highContrast_dark
+            } else {
+                color = app_highContrast_light
+            }
+        } else {
+            when (packageName) {
+                "Config" -> color = makeFlatColor(Color.GRAY)
+                "Llamadas" -> color = makeFlatColor(Color.RED)
+                "Lupa" -> color = makeFlatColor(Color.BLUE)
+                "mensajes" -> color = makeFlatColor(rgb(0xFF, 0x88, 0x00))
+                else -> color = makeFlatColor(Color.GRAY)
+            }
+            if (Configs.obtenerBoolean("modoNoche") == true) {
+                color = app_highContrast_dark
+            }
+            if (Configs.obtenerBoolean("modoFondo") == true) {
+                color = argb(200, color.red, color.green, color.blue)
+            }
+        }
+        return color
+    }
 
     /*
     fun getDominantColor(drawable: Drawable): Int {

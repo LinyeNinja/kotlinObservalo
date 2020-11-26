@@ -52,7 +52,7 @@ object AppGetter {
             val icon: Drawable
             if (packageName == defaultSms) {
                 icon = ContextCompat.getDrawable(Contexto.mainActivity, R.drawable.ic_mensajes)!!
-                color = Paint.makeFlatColor(Color.YELLOW)
+                color = Paint.colorObservaloApp("mensajes")
             }
             else{
                 icon = ri.activityInfo.loadIcon(pm)

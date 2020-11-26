@@ -24,7 +24,7 @@
             android:defaultValue="false"
             />
         <SwitchPreferenceCompat
-            android:key="Alto contraste"
+            android:key="modoAltoContraste"
             android:title="Modo de alto contraste"
             android:summary="(Es afectado por el tema oscuro)"
             />

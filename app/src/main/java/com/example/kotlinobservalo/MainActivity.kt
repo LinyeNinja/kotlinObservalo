@@ -31,6 +31,7 @@ import android.widget.FrameLayout
 import androidx.annotation.DimenRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.PagerSnapHelper
@@ -123,13 +124,14 @@ class MainActivity : AppCompatActivity() {
 
         listaDeApps = AppGetter.getListaDeApps(this.applicationContext)
 
+
         val configAct = AppInfo(
             null,
             "Configurar Launcher",
             "LclObservaloConfigActivity",
             ContextCompat.getDrawable(this, R.drawable.ic_config),
-            Paint.makeFlatColor(Color.GRAY)
-        )
+            Paint.colorObservaloApp("Config")
+            )
         listaDeApps.add(configAct)
 
         val llamadasAct = AppInfo(
@@ -137,7 +139,7 @@ class MainActivity : AppCompatActivity() {
             "Llamadas",
             "LclObservaloLlamadasActivity",
             ContextCompat.getDrawable(this, R.drawable.ic_llamadas_emergencia),
-            Paint.makeFlatColor(Color.RED)
+            Paint.colorObservaloApp("Llamadas")
         )
         listaDeApps.add(llamadasAct)
 
@@ -146,7 +148,7 @@ class MainActivity : AppCompatActivity() {
             "Lupa",
             "LclObservaloLupa",
             ContextCompat.getDrawable(this, R.drawable.ic_lupa),
-            Paint.makeFlatColor(Color.BLUE)
+            color = Paint.colorObservaloApp("Lupa")
         )
         listaDeApps.add(lupaAct)
 
