@@ -26,15 +26,13 @@ class LclObservaloConfigActivity : AppCompatActivity() {
             setPreferencesFromResource(R.xml.root_preferences, rootKey)
 
             val button: Preference? = findPreference("configIconos")
-            button?.setOnPreferenceClickListener(object : Preference.OnPreferenceClickListener {
-                override fun onPreferenceClick(preference: Preference?): Boolean {
-                    Configs.modoConfig = true
-                    val intent = Intent(context, MainActivity::class.java)
-                    context!!.startActivity(intent)
-                    //2020-07-04 13:33:59.350 5630-5630/com.example.kotlinobservalo I/Choreographer: Skipped 109 frames!  The application may be doing too much work on its main thread.
-                    return true
-                }
-            })
+            button?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+                Configs.modoConfig = true
+                val intent = Intent(context, MainActivity::class.java)
+                requireContext().startActivity(intent)
+                //2020-07-04 13:33:59.350 5630-5630/com.example.kotlinobservalo I/Choreographer: Skipped 109 frames!  The application may be doing too much work on its main thread.
+                true
+            }
         }
     }
 

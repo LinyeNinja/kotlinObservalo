@@ -16,7 +16,7 @@ class Principal : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         v = inflater.inflate(R.layout.settings_activity, container, false)
 
         //btnNext = v.findViewById(R.id.btnNext)

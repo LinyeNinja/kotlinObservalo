@@ -1,8 +1,5 @@
 package com.example.kotlinobservalo.ClasesDeInfo
 
-import android.graphics.Color
-import android.graphics.drawable.Drawable
-
 class AppGuardable(listaCarpeta: Int? = null, label:String, packageName:String, color: Int, visible:Boolean = true) {
     var listaCarpeta: Int? = null
     var label: String

@@ -1,6 +1,6 @@
 package com.example.kotlinobservalo.Lupa;
 
-import android.app.ActionBar;
+import android.annotation.SuppressLint;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
@@ -9,8 +9,6 @@ import android.os.Environment;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 
@@ -53,7 +51,7 @@ public class LclObservaloLupa extends AppCompatActivity implements View.OnClickL
     boolean monPerm;
 
     //Void para sacar fotos:
-    private PictureCallback mPicture = new PictureCallback() {
+    private final PictureCallback mPicture = new PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
             foto = data;
@@ -63,7 +61,7 @@ public class LclObservaloLupa extends AppCompatActivity implements View.OnClickL
     };
 
     private void guardarArchivo(byte[] photo){
-        File pictureFile = getOutputMediaFile(MEDIA_TYPE_IMAGE);
+        File pictureFile = getOutputMediaFile();
         if (pictureFile == null) {
             Log.d("minga", "Error creating media file, check storage permissions");
             return;
@@ -89,6 +87,7 @@ public class LclObservaloLupa extends AppCompatActivity implements View.OnClickL
     Button efectosBtn;
     Button flashBtn;
     ////////////////////////////////////////////////////////ON CREATE////////////////////////////////////////////////////////
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -132,14 +131,11 @@ public class LclObservaloLupa extends AppCompatActivity implements View.OnClickL
         }
 
         //hacer focus:
-        mPreview.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    focusOnTouch(event);
-                }
-                return true;
+        mPreview.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                focusOnTouch(event);
             }
+            return true;
         });
 
         Log.d("minga", "zoom0");
@@ -164,22 +160,23 @@ public class LclObservaloLupa extends AppCompatActivity implements View.OnClickL
     }
 
     //botones:
+    @SuppressLint("NonConstantResourceId")
     @Override
     public void onClick(View v) {
         switch(v.getId()) {
             //El boton de pausa:
             case R.id.button_capture:
             // get an image from the camera
-                if (pausa == false) {
+                if (!pausa) {
                     mCamera.takePicture(null, null, mPicture);
-                } else if (pausa == true) {
+                } else if (pausa) {
                     mCamera.startPreview();
                     pausa = false;
                 }
                 break;
             //El boton de guardar img:
             case R.id.guardar:
-                if (pausa == true) {
+                if (pausa) {
                     guardar = true;
                     guardarArchivo(foto);
                     guardar = false;
@@ -191,7 +188,7 @@ public class LclObservaloLupa extends AppCompatActivity implements View.OnClickL
                     try {
                         params = mCamera.getParameters();
                         mCamera.setParameters(params);
-                        if(linterna == false) {
+                        if(!linterna) {
                             params.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
                             mCamera.setParameters(params);
                             linterna = true;
@@ -200,7 +197,7 @@ public class LclObservaloLupa extends AppCompatActivity implements View.OnClickL
                             mCamera.setParameters(params);
                             linterna = false;
                         }
-                    } catch (Exception e) {
+                    } catch (Exception ignored) {
                     }
                 }
                 break;
@@ -224,7 +221,7 @@ public class LclObservaloLupa extends AppCompatActivity implements View.OnClickL
                             }
                             mCamera.setParameters(params);
                         }
-                    } catch (Exception e) {
+                    } catch (Exception ignored) {
                     }
                 }
                 break;
@@ -247,7 +244,7 @@ public class LclObservaloLupa extends AppCompatActivity implements View.OnClickL
                             }
                             mCamera.setParameters(params);
                         }
-                    } catch (Exception e) {
+                    } catch (Exception ignored) {
                     }
                 }
                 break;
@@ -303,7 +300,7 @@ public class LclObservaloLupa extends AppCompatActivity implements View.OnClickL
                                 break;
                         }
                         }
-                    catch (Exception e) {
+                    catch (Exception ignored) {
                     }
                 }
                 break;
@@ -331,51 +328,46 @@ public class LclObservaloLupa extends AppCompatActivity implements View.OnClickL
                 Rect rect = calculateFocusArea(event.getX(), event.getY());
 
                 parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
-                List<Camera.Area> meteringAreas = new ArrayList<Camera.Area>();
+                List<Camera.Area> meteringAreas = new ArrayList<>();
                 meteringAreas.add(new Camera.Area(rect, 800));
                 parameters.setFocusAreas(meteringAreas);
 
                 mCamera.setParameters(parameters);
-                mCamera.autoFocus(mAutoFocusTakePictureCallback);
-            }else {
-                mCamera.autoFocus(mAutoFocusTakePictureCallback);
             }
+            mCamera.autoFocus(mAutoFocusTakePictureCallback);
         }
     }
     private Rect calculateFocusArea(float x, float y) {
-        int left = clamp(Float.valueOf((x / mPreview.getWidth()) * 2000 - 1000).intValue(), FOCUS_AREA_SIZE);
-        int top = clamp(Float.valueOf((y / mPreview.getHeight()) * 2000 - 1000).intValue(), FOCUS_AREA_SIZE);
+        int left = clamp(Float.valueOf((x / mPreview.getWidth()) * 2000 - 1000).intValue());
+        int top = clamp(Float.valueOf((y / mPreview.getHeight()) * 2000 - 1000).intValue());
 
         return new Rect(left, top, left + FOCUS_AREA_SIZE, top + FOCUS_AREA_SIZE);
     }
-    private int clamp(int touchCoordinateInCameraReper, int focusAreaSize) {
+    private int clamp(int touchCoordinateInCameraReper) {
         int result;
-        if (Math.abs(touchCoordinateInCameraReper)+focusAreaSize/2>1000){
+        if (Math.abs(touchCoordinateInCameraReper)+ LclObservaloLupa.FOCUS_AREA_SIZE /2>1000){
             if (touchCoordinateInCameraReper>0){
-                result = 1000 - focusAreaSize/2;
+                result = 1000 - LclObservaloLupa.FOCUS_AREA_SIZE /2;
             } else {
-                result = -1000 + focusAreaSize/2;
+                result = -1000 + LclObservaloLupa.FOCUS_AREA_SIZE /2;
             }
         } else{
-            result = touchCoordinateInCameraReper - focusAreaSize/2;
+            result = touchCoordinateInCameraReper - LclObservaloLupa.FOCUS_AREA_SIZE /2;
         }
         return result;
     }
-    private Camera.AutoFocusCallback mAutoFocusTakePictureCallback = new Camera.AutoFocusCallback() {
-        @Override
-        public void onAutoFocus(boolean success, Camera camera) {
-            if (success) {
-                // do something...
-                Log.i("tap_to_focus","success!");
-            } else {
-                // do something...
-                Log.i("tap_to_focus","fail!");
-            }
+    private final Camera.AutoFocusCallback mAutoFocusTakePictureCallback = (success, camera) -> {
+        if (success) {
+            // do something...
+            Log.i("tap_to_focus","success!");
+        } else {
+            // do something...
+            Log.i("tap_to_focus","fail!");
         }
     };
 
     /** Create a File for saving an image or video */
-    private static File getOutputMediaFile(int type){
+    private static File getOutputMediaFile(){
         // To be safe, you should check that the SDCard is mounted
         // using Environment.getExternalStorageState() before doing this.
 
@@ -393,12 +385,12 @@ public class LclObservaloLupa extends AppCompatActivity implements View.OnClickL
         }
 
         // Create a media file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        @SuppressLint("SimpleDateFormat") String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         File mediaFile;
-        if (type == MEDIA_TYPE_IMAGE){
+        if (android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE == MEDIA_TYPE_IMAGE){
             mediaFile = new File(mediaStorageDir.getPath() + File.separator +
                     "IMG_"+ timeStamp + ".jpg");
-        } else if(type == MEDIA_TYPE_VIDEO) {
+        } else if(android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE == MEDIA_TYPE_VIDEO) {
             mediaFile = new File(mediaStorageDir.getPath() + File.separator +
                     "VID_"+ timeStamp + ".mp4");
         } else {

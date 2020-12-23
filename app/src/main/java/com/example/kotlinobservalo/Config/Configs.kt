@@ -5,7 +5,7 @@ import com.example.kotlinobservalo.Contexto
 
 object Configs {
 
-    val prefs = PreferenceManager.getDefaultSharedPreferences(Contexto.mainActivity)
+    private val prefs = PreferenceManager.getDefaultSharedPreferences(Contexto.mainActivity)
 
     private var modoAltoContraste = false
     private var cantColumnas = 3
@@ -21,36 +21,40 @@ object Configs {
     }
 
     fun modoAltoContraste(input: Boolean? = null):Boolean {
-        if (input == null) {
-            return prefs.getBoolean("modoAltoContraste", false)
-        }
-        else if (input == false){
-            val editor = prefs.edit()
-            editor.putBoolean("modoAltoContraste", true)
-            editor.apply()
-        }
-        else if (input == true){
-            val editor = prefs.edit()
-            editor.putBoolean("modoAltoContraste", true)
-            editor.apply()
+        when (input) {
+            null -> {
+                return prefs.getBoolean("modoAltoContraste", false)
+            }
+            false -> {
+                val editor = prefs.edit()
+                editor.putBoolean("modoAltoContraste", true)
+                editor.apply()
+            }
+            true -> {
+                val editor = prefs.edit()
+                editor.putBoolean("modoAltoContraste", true)
+                editor.apply()
+            }
         }
         cambiado = true
         return false
     }
 
     fun puedeRotar(input: Boolean? = null):Boolean {
-        if (input == null) {
-            return prefs.getBoolean("puedeRotar", false)
-        }
-        else if (input == false){
-            val editor = prefs.edit()
-            editor.putBoolean("puedeRotar", true)
-            editor.apply()
-        }
-        else if (input == true){
-            val editor = prefs.edit()
-            editor.putBoolean("puedeRotar", true)
-            editor.apply()
+        when (input) {
+            null -> {
+                return prefs.getBoolean("puedeRotar", false)
+            }
+            false -> {
+                val editor = prefs.edit()
+                editor.putBoolean("puedeRotar", true)
+                editor.apply()
+            }
+            true -> {
+                val editor = prefs.edit()
+                editor.putBoolean("puedeRotar", true)
+                editor.apply()
+            }
         }
         cambiado = true
         return false

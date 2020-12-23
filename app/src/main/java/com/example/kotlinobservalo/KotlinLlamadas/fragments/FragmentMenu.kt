@@ -40,7 +40,7 @@ class FragmentMenu : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
 
         v = inflater.inflate(R.layout.llamadas_fragment_menu, container, false)
         recyclerContacto = v.findViewById(R.id.recycler)
@@ -69,7 +69,7 @@ class FragmentMenu : Fragment() {
                 Contacto(
                     "POLICÍA",
                     "911",
-                    R.drawable.ic_baseline_local_pizza_24,
+                    R.drawable.ic_baseline_local_police_24,
                     "#45B6FE"
                 )
             )

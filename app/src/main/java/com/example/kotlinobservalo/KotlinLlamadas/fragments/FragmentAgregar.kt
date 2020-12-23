@@ -45,12 +45,11 @@ class FragmentAgregar : Fragment() {
         "#B854FF"
     )
 
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         v =  inflater.inflate(R.layout.llamadas_fragment_agregar, container, false)
         btnAgregarContacto = v.findViewById(R.id.botonAgregaContacto)
         nombreContacto = v.findViewById(R.id.editTextNombre)
@@ -78,7 +77,7 @@ class FragmentAgregar : Fragment() {
         editor.apply()
 
         //Botón para agregar el contacto
-        var gradientDrawable = GradientDrawable()
+        val gradientDrawable = GradientDrawable()
         gradientDrawable.cornerRadius = Paint.radio
         gradientDrawable.setColor(Color.argb(0xFF, 0x53, 0xED, 0x72))
 

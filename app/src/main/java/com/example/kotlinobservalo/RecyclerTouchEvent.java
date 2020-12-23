@@ -9,13 +9,14 @@ import android.view.View;
 import androidx.core.view.MotionEventCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.jetbrains.annotations.NotNull;
+
 public class RecyclerTouchEvent implements RecyclerView.OnItemTouchListener {
-    private GestureDetector gestureDetector;
     ClickListener clickListener;
 
     public RecyclerTouchEvent(Context context, final RecyclerView recyclerView, final ClickListener clickListener) {
         this.clickListener = clickListener;
-        gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
+        GestureDetector gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onSingleTapUp(MotionEvent e) {
 
@@ -35,7 +36,6 @@ public class RecyclerTouchEvent implements RecyclerView.OnItemTouchListener {
     public boolean onInterceptTouchEvent(final RecyclerView rv, MotionEvent e) {
         final View childView = rv.findChildViewUnder(e.getX(), e.getY());
 
-        //CHECKPOINT
         int action = MotionEventCompat.getActionMasked(e);
         /*
         if (action == MotionEvent.ACTION_DOWN){
@@ -48,15 +48,14 @@ public class RecyclerTouchEvent implements RecyclerView.OnItemTouchListener {
             //    Log.d("quebuenacancioooon","aaaa");
             //}
             //clickListener.onOutsideClick(e);
-        }else if (childView==null&&clickListener!=null){
-            //clickListener.onOutsideClick(e);
-        }
+        } //clickListener.onOutsideClick(e);
+
 
         return false;
     }
 
     @Override
-    public void onTouchEvent(RecyclerView rv, MotionEvent motionEvent) {
+    public void onTouchEvent(@NotNull RecyclerView rv, @NotNull MotionEvent motionEvent) {
 
     }
 
@@ -65,7 +64,7 @@ public class RecyclerTouchEvent implements RecyclerView.OnItemTouchListener {
 
     }
 
-    public static interface ClickListener {
-        public void onClick(MotionEvent event);
+    public interface ClickListener {
+        void onClick(MotionEvent event);
     }
 }

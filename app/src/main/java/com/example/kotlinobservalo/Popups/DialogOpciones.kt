@@ -16,18 +16,18 @@ import com.example.kotlinobservalo.Paint
 import com.example.kotlinobservalo.R
 import java.util.*
 
-class DialogOpciones(val listaBtns: ArrayList<Btns>, val onButtonClick : (Int) -> Unit): DialogFragment() {
+class DialogOpciones(private val listaBtns: ArrayList<Btns>, val onButtonClick : (Int) -> Unit): DialogFragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         super.onCreateView(inflater, container, savedInstanceState)
         val v: View = inflater.inflate(R.layout.lista_con_opciones, container, false)
 
         // Get the widgets reference from custom view
         val opcionesRecycler: RecyclerView = v.findViewById(R.id.listaDeBtns)
-        val params: ViewGroup.LayoutParams = opcionesRecycler.getLayoutParams()
+        val params: ViewGroup.LayoutParams = opcionesRecycler.layoutParams
         val separacion = 5
         params.width = Paint.anchuraDeLaPantalla / 10 * 7 //TODO ¿Debería ser esto así o adaptarse al tamaño del ícono más grande?
 
@@ -49,7 +49,7 @@ class DialogOpciones(val listaBtns: ArrayList<Btns>, val onButtonClick : (Int) -
         return v
     }
 
-    fun onItemClick(position: Int) {
+    private fun onItemClick(position: Int) {
         Log.d("posicion", position.toString())
         onButtonClick(position)
         dismiss()

@@ -25,9 +25,9 @@ import com.example.kotlinobservalo.Paint.colorCarpetaAbierta
 
 class DialogCarpeta(label: String, position: Int, listaCarpeta: MutableList<AppInfo>?, val onConfigHappened : (String, String) -> Unit): DialogFragment() {
 
-    var listaCarpeta: MutableList<AppInfo>? = null
+    private var listaCarpeta: MutableList<AppInfo>? = null
     var label: String
-    var position: Int
+    private var position: Int
     init {
         this.listaCarpeta = listaCarpeta
         this.label = label
@@ -45,8 +45,8 @@ class DialogCarpeta(label: String, position: Int, listaCarpeta: MutableList<AppI
         if(modoConfig) {
             val editText: EditText = v.findViewById(R.id.tituloCarpeta)
             val texto = editText.text.toString()
-            onConfigHappened("tituloCarpetaEditada" + position.toString(), texto)
-            Log.d("el texto se cambió a:", texto.toString())
+            onConfigHappened("tituloCarpetaEditada$position", texto)
+            Log.d("el texto se cambió a:", texto)
         }
     }
 
@@ -63,7 +63,7 @@ class DialogCarpeta(label: String, position: Int, listaCarpeta: MutableList<AppI
         val dialog = dialog
         if (dialog != null) {
             dialog.window!!.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            getDialog()!!.getWindow()!!.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT));
+            getDialog()!!.window!!.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
             //dialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         }
     }
@@ -73,9 +73,9 @@ class DialogCarpeta(label: String, position: Int, listaCarpeta: MutableList<AppI
         container: ViewGroup?,
         savedInstanceState: Bundle?
 
-    ): View? {
+    ): View {
         super.onCreateView(inflater, container, savedInstanceState)
-        getDialog()!!.getWindow()!!.requestFeature(Window.FEATURE_NO_TITLE);
+        dialog!!.window!!.requestFeature(Window.FEATURE_NO_TITLE)
         v = inflater.inflate(R.layout.carpeta_abierta, container, false)
 
         //TODO intentos de hacer que el ancho sea el máx: NADA DE ESTAS COSAS HACE LO MÁS MÍNIMO SOBRE AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
@@ -98,7 +98,7 @@ class DialogCarpeta(label: String, position: Int, listaCarpeta: MutableList<AppI
         params.height = cantColumnas*appHeight+separacion*cantColumnas*2
         params.width = Paint.anchuraDeLaPantalla
 
-        var casaBackground = GradientDrawable()
+        val casaBackground = GradientDrawable()
         casaBackground.cornerRadius = Paint.radio
         casaBackground.setColor(colorCarpetaAbierta())
         val casa = v.findViewById<LinearLayout>(R.id.casaDeCarpeta)
@@ -140,7 +140,7 @@ class DialogCarpeta(label: String, position: Int, listaCarpeta: MutableList<AppI
         */
     }
     else{
-        editText.setEnabled(false)
+        editText.isEnabled = false
     }
     editText.setTextColor(Paint.colorAppLabel())
 
@@ -148,7 +148,7 @@ class DialogCarpeta(label: String, position: Int, listaCarpeta: MutableList<AppI
         fun onConfigHappenedInAppAdapter(evento: String, packageName: String){
             onConfigHappened(evento, packageName)
             adaptadorCarpeta.notifyDataSetChanged() //TODO peligroso
-            if(!(adaptadorCarpeta.items!!.size > 0)){
+            if(adaptadorCarpeta.items!!.size <= 0){
                 dialog?.dismiss() //TODO peligroso
             }
         }

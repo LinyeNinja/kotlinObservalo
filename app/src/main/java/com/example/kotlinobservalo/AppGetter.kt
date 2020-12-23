@@ -26,6 +26,7 @@ object AppGetter {
     //La siguiente función devuelve la lista de aplicaciones del sistema
     //Cada aplicación está guardada como un "AppInfo" (clase nuestra)
     //Los datos por ahora son: título, nombre de paquete e ícono, aunque también debería tener uno para el color de fondo
+
     fun getListaDeApps(c: Context): ArrayList<AppInfo> {
         pm = c.packageManager
         val appsList = ArrayList<AppInfo>()
@@ -54,7 +55,8 @@ object AppGetter {
                 icon = ContextCompat.getDrawable(Contexto.mainActivity, R.drawable.ic_mensajes)!!
                 color = Paint.colorObservaloApp("mensajes")
             }
-            else{
+
+            else {
                 icon = ri.activityInfo.loadIcon(pm)
                 color = Paint.colorApp(icon)
             }
@@ -72,7 +74,7 @@ object AppGetter {
         return appsList
     }
 
-    fun launch(packageName:String){
+    fun launch(packageName:String) {
         Log.d("a", packageName)
         if (packageName.contains("LclObservalo")) { //!!!!Esto tiene un problema!!!! por alguna razón no funciona cuando intento pedirle que me convierta una String a una clase, por lo que ahorita mismo esto solo puede abrir la configuracion
             //val intent = Intent(Contexto.mainActivity, packageName::class.java)
@@ -82,49 +84,59 @@ object AppGetter {
                 Contexto.mainActivity.startActivity(intent)
             } catch (ignored: ClassNotFoundException) {
             }   */
-            if (packageName.contains("Config")){
+
+            if (packageName.contains("Config")) {
                 val intent = Intent(Contexto.mainActivity, LclObservaloConfigActivity::class.java)
                 Configs.cambiado = true
                 Contexto.mainActivity.startActivity(intent)
             }
-            else if (packageName.contains("Llamadas")){
+
+            else if (packageName.contains("Llamadas")) {
                 val intent = Intent(Contexto.mainActivity, LclObservaloLlamadas::class.java)
                 Contexto.mainActivity.startActivity(intent)
             }
-            else if (packageName.contains("Lupa")){
+
+            else if (packageName.contains("Lupa")) {
                 val intent = Intent(Contexto.mainActivity, LclObservaloLupa::class.java)
                 Contexto.mainActivity.startActivity(intent)
             }
         }
+
         else {
             val context = Contexto.app
-            val launchAppIntent: Intent? = context.getPackageManager()
+            val launchAppIntent: Intent? = context.packageManager
                 .getLaunchIntentForPackage(packageName)
             if (launchAppIntent != null) context.startActivity(launchAppIntent)
         }
+
     }
 
-    fun uninstall(paquete: String){
+    fun uninstall(paquete: String) {
         val intent = Intent(Intent.ACTION_UNINSTALL_PACKAGE)
-        intent.data = Uri.parse("package:" + paquete)
+        intent.data = Uri.parse("package:$paquete")
         Contexto.mainActivity.startActivity(intent)
     }
 
-    private fun getDefaultApp(tipo: String): String{ //necesita alguna forma de prevenir errores
+    private fun getDefaultApp(tipo: String): String { //Necesita alguna forma de prevenir errores
         when (tipo){
             "sms" -> return getDefaultSmsPackage(Contexto.mainActivity)
+
             "contactos" -> { //inventado, puede estar mal
                 val intent = Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI)
                 val resolveInfoList = pm.queryIntentActivities(intent, 0)
                 return resolveInfoList[0].activityInfo.packageName
             }
+
             "llamadas" -> {
             val intent = Intent(Intent.ACTION_DIAL).addCategory(Intent.CATEGORY_DEFAULT)
             val resolveInfoList = pm.queryIntentActivities(intent, 0)
             return resolveInfoList[0].activityInfo.packageName
             }
+
             "config" -> return getDefaultSmsPackage(Contexto.mainActivity)
+
             "reloj" -> return getDefaultSmsPackage(Contexto.mainActivity)
+
             else -> return "null"
         }
     }

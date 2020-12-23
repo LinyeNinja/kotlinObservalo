@@ -5,23 +5,19 @@ Esta clase tiene todas las declaraciones de los colores de tod0 lo de la aplicac
 Además, tiene toda función que se utilice para prosesamiento de imágenes y obtención de datos acerca de la pantalla
  */
 
-import android.app.WallpaperManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Color.argb
 import android.graphics.Color.rgb
-import android.graphics.Point
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.graphics.drawable.Icon
-import android.view.WindowManager
-import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
 import com.example.kotlinobservalo.Config.Configs
 import java.util.*
+import kotlin.math.abs
 
 object Paint {
 
@@ -42,7 +38,7 @@ object Paint {
     private val colorAccept = rgb(0x77,0xDD,0x77)
 
     private val background_highContrast_light = rgb(0x0F,0x0F,0x0F)
-    val app_highContrast_light = rgb(0xF5,0xF5,0xF5)
+    private val app_highContrast_light = rgb(0xF5,0xF5,0xF5)
     private val text_highContrast_light = rgb(0x0F,0x0F,0x0F)
 
     private val app_highContrast_dark = rgb(0x0F,0x0F,0x0F)
@@ -67,72 +63,66 @@ object Paint {
     private val carpeta_dark  =  argb( 0xFF, 0xFE, 0xE0, 0x98)
 
     fun colorAppLabel(): Int{
-        if (Configs.obtenerBoolean("modoAltoContraste") == true){
-            if (Configs.obtenerBoolean("modoNoche") == true){
-                return text_highContrast_dark
-            }
-            else{
-                return text_highContrast_light
+        if (Configs.obtenerBoolean("modoAltoContraste")){
+            return if (Configs.obtenerBoolean("modoNoche")){
+                text_highContrast_dark
+            } else{
+                text_highContrast_light
             }
         }
         else{
-            if (Configs.obtenerBoolean("modoFondo") == false){
-                if (Configs.obtenerBoolean("modoNoche") == true){
-                    return text_dark
-                }
-                else{
-                    return text_light
+            return if (!Configs.obtenerBoolean("modoFondo")){
+                if (Configs.obtenerBoolean("modoNoche")){
+                    text_dark
+                } else{
+                    text_light
                 }
             } else {
-                if (Configs.obtenerBoolean("modoNoche") == true) {
-                    return text_fondo_dark
-                }
-                else {
-                    return text_fondo_light
+                if (Configs.obtenerBoolean("modoNoche")) {
+                    text_fondo_dark
+                } else {
+                    text_fondo_light
                 }
             }
         }
     }
     fun colorFondo(): Int{
-        if (Configs.obtenerBoolean("modoAltoContraste") == true){
-            if (Configs.obtenerBoolean("modoNoche") == true){
-                return background_highContrast_dark
+        return if (Configs.obtenerBoolean("modoAltoContraste")){
+            if (Configs.obtenerBoolean("modoNoche")){
+                background_highContrast_dark
+            } else{
+                background_highContrast_light
             }
-            else{
-                return background_highContrast_light
-            }
-        }
-        else{
-            if (Configs.obtenerBoolean("modoNoche") == true) {
-                return background_dark
+        } else{
+            if (Configs.obtenerBoolean("modoNoche")) {
+                background_dark
             } else {
-                return background_light
+                background_light
             }
         }
     }
     fun colorCarpetaAbierta(): Int{
-        if (Configs.obtenerBoolean("modoNoche") == true){
-            return carpetaAbierta_fondo_dark
-        }
-        else{
-            return carpetaAbierta_fondo_light
+        return if (Configs.obtenerBoolean("modoNoche")){
+            carpetaAbierta_fondo_dark
+        } else{
+            carpetaAbierta_fondo_light
         }
     }
         fun colorCarpeta(): Int{
         var color: Int
-        if (Configs.obtenerBoolean("modoAltoContraste") == true) {
-            if (Configs.obtenerBoolean("modoNoche") == true) {
-                color = app_highContrast_dark
+        if (Configs.obtenerBoolean("modoAltoContraste")) {
+            color = if (Configs.obtenerBoolean("modoNoche")) {
+                app_highContrast_dark
             } else {
-                color = app_highContrast_light
+                app_highContrast_light
             }
         } else {
-            if (Configs.obtenerBoolean("modoNoche") == true) {
-                color = carpeta_dark
+            color = if (Configs.obtenerBoolean("modoNoche")) {
+                carpeta_dark
             } else {
-                color = carpeta_light
+                carpeta_light
             }
-            if (Configs.obtenerBoolean("modoFondo") == true) {
+            if (Configs.obtenerBoolean("modoFondo")) {
                 color = argb(200, color.red, color.green, color.blue)
             }
         }
@@ -141,19 +131,19 @@ object Paint {
 
     fun colorApp(icon: Drawable): Int{
         var color: Int
-        if (Configs.obtenerBoolean("modoAltoContraste") == true) {
-            if (Configs.obtenerBoolean("modoNoche") == true) {
-                color = app_highContrast_dark
+        if (Configs.obtenerBoolean("modoAltoContraste")) {
+            color = if (Configs.obtenerBoolean("modoNoche")) {
+                app_highContrast_dark
             } else {
-                color = app_highContrast_light
+                app_highContrast_light
             }
         } else {
-            if (Configs.obtenerBoolean("modoNoche") == true) {
-                color = getDominantFlatColor(icon, "dark")
+            color = if (Configs.obtenerBoolean("modoNoche")) {
+                getDominantFlatColor(icon, "dark")
             } else {
-                color = getDominantFlatColor(icon, "light")
+                getDominantFlatColor(icon, "light")
             }
-            if (Configs.obtenerBoolean("modoFondo") == true) {
+            if (Configs.obtenerBoolean("modoFondo")) {
                 color = argb(200, color.red, color.green, color.blue)
             }
         }
@@ -161,24 +151,24 @@ object Paint {
     }
     fun colorObservaloApp(packageName: String): Int{
         var color: Int
-        if (Configs.obtenerBoolean("modoAltoContraste") == true) {
-            if (Configs.obtenerBoolean("modoNoche") == true) {
-                color = app_highContrast_dark
+        if (Configs.obtenerBoolean("modoAltoContraste")) {
+            color = if (Configs.obtenerBoolean("modoNoche")) {
+                app_highContrast_dark
             } else {
-                color = app_highContrast_light
+                app_highContrast_light
             }
         } else {
-            when (packageName) {
-                "Config" -> color = makeFlatColor(Color.GRAY)
-                "Llamadas" -> color = makeFlatColor(Color.RED)
-                "Lupa" -> color = makeFlatColor(Color.BLUE)
-                "mensajes" -> color = makeFlatColor(rgb(0xFF, 0x88, 0x00))
-                else -> color = makeFlatColor(Color.GRAY)
+            color = when (packageName) {
+                "Config" -> makeFlatColor(Color.GRAY)
+                "Llamadas" -> makeFlatColor(Color.RED)
+                "Lupa" -> makeFlatColor(Color.BLUE)
+                "mensajes" -> makeFlatColor(rgb(0xFF, 0x88, 0x00))
+                else -> makeFlatColor(Color.GRAY)
             }
-            if (Configs.obtenerBoolean("modoNoche") == true) {
+            if (Configs.obtenerBoolean("modoNoche")) {
                 color = app_highContrast_dark
             }
-            if (Configs.obtenerBoolean("modoFondo") == true) {
+            if (Configs.obtenerBoolean("modoFondo")) {
                 color = argb(200, color.red, color.green, color.blue)
             }
         }
@@ -199,9 +189,8 @@ object Paint {
             return 0 //esto no gusta, debería ser el color por defecto que tira si algo male sal
         }
     }*/
-    open fun getDominantColor(drawable: Drawable): Int {
+    private fun getDominantColor(drawable: Drawable): Int {
         val bitmap = drawableToBitmap(drawable)
-        if (bitmap == null) throw NullPointerException()
         val width = bitmap.width
         val height = bitmap.height
         val size = width * height
@@ -209,19 +198,19 @@ object Paint {
         val bitmap2 = bitmap.copy(Bitmap.Config.ARGB_4444, false)
         bitmap2.getPixels(pixels, 0, width, 0, 0, width, height)
         val colorMap = HashMap<Int, Int>()
-        var color = 0
-        var count: Int? = 0
+        var color: Int
+        var count: Int?
         for (i in pixels.indices) {
             color = pixels[i]
-            if (Color.alpha(color) > 5 && Math.abs(
+            if (Color.alpha(color) > 5 && abs(
                     Color.red(
                         color
                     ) - Color.green(color)
-                ) + Math.abs(
+                ) + abs(
                     Color.red(color) - Color.blue(
                         color
                     )
-                ) + Math.abs(
+                ) + abs(
                     Color.blue(color) - Color.green(
                         color
                     )
@@ -244,20 +233,20 @@ object Paint {
         return dominantColor
     }
 
-    open fun getDominantFlatColor(drawable: Drawable, mode: String): Int {
+    private fun getDominantFlatColor(drawable: Drawable, mode: String): Int {
         return makeFlatColor(getDominantColor(drawable))
     }
 
-    open fun makeFlatColor(color: Int): Int {
+    private fun makeFlatColor(color: Int): Int {
         var outColor: Int
-        if (Configs.obtenerBoolean("modoAltoContraste") == true) {
-            if (Configs.obtenerBoolean("modoNoche") == true) {
-                outColor = app_highContrast_dark
+        if (Configs.obtenerBoolean("modoAltoContraste")) {
+            outColor = if (Configs.obtenerBoolean("modoNoche")) {
+                app_highContrast_dark
             } else {
-                outColor = app_highContrast_light
+                app_highContrast_light
             }
         } else {
-            if (Configs.obtenerBoolean("modoNoche") == true) {
+            if (Configs.obtenerBoolean("modoNoche")) {
                 val hsv = FloatArray(3)
                 Color.colorToHSV(color, hsv)
                 hsv[2] = 0.2f
@@ -277,19 +266,18 @@ object Paint {
                 return Color.HSVToColor(hsv)
             }
         }
-        if (Configs.obtenerBoolean("modoFondo") == true) {
+        if (Configs.obtenerBoolean("modoFondo")) {
             outColor = argb(200, color.red, color.green, color.blue)
         }
         return Color.RED
     }
 
 
-    fun drawableToBitmap(drawable: Drawable): Bitmap {
-        var bitmap: Bitmap? = null
+    private fun drawableToBitmap(drawable: Drawable): Bitmap {
+        val bitmap: Bitmap?
         if (drawable is BitmapDrawable) {
-            val bitmapDrawable = drawable
-            if (bitmapDrawable.bitmap != null) {
-                return bitmapDrawable.bitmap
+            if (drawable.bitmap != null) {
+                return drawable.bitmap
             }
         }
         bitmap = if (drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) {

@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
 import android.view.ViewGroup
-import android.view.Window
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -26,27 +25,22 @@ import kotlinx.android.synthetic.main.app_equisemel.view.laiaut
 import kotlinx.android.synthetic.main.carpeta_equisemel.view.*
 import java.util.*
 
-
-var contador = 0
-
 class AppAdapter(items: MutableList<AppInfo>?, val onConfigHappened : (String, String) -> Unit): RecyclerView.Adapter<AppAdapter.ViewHolder>(){
 
     var items:MutableList<AppInfo>? = null
 
-    var viewHolder: ViewHolder? = null
+    private var packageName: String = ""
 
-    var packageName: String = ""
+    private var cellWidth: Int = 200
+    private var cellHeight: Int = 200
 
-    var cellWidth: Int = 200
-    var cellHeight: Int = 200
-
-    var esCarpeta = false
+    private var esCarpeta = false
 
     lateinit var view: View
 
-    lateinit var patro: ViewGroup //el viewgroup/recyclerview al que pertenecen los cosos
+    private lateinit var patro: ViewGroup //el viewgroup/recyclerview al que pertenecen los cosos
 
-    lateinit var adaptadorCarpeta: AppAdapter
+    private lateinit var adaptadorCarpeta: AppAdapter
 
     init{
         this.items = items
@@ -54,51 +48,45 @@ class AppAdapter(items: MutableList<AppInfo>?, val onConfigHappened : (String, S
         this.cellHeight = Paint.appHeight
     }
 
-
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items?.get(position)
 
         if (!esCarpeta){
             packageName = item!!.packageName
 
-            if (Configs.modoConfig == false){
-                holder.v.setOnClickListener(
-                    object: View.OnClickListener {
-                        override fun onClick(view: View) {
-                            AppGetter.launch(item.packageName)
-                        }
-                    }
-                )
+            if (!Configs.modoConfig){
+                holder.v.setOnClickListener { AppGetter.launch(item.packageName) }
             }
+
             else{
                 if (patro.height < Paint.alturaDeLaPantalla){
-                    holder.v.setOnLongClickListener(
-                        object: View.OnLongClickListener {
-                            override fun onLongClick(v: View?): Boolean {
-                                val listaBtns = ArrayList<Btns>()
-                                listaBtns.add(Btns("sacar de carpeta", Color.rgb(0xFF, 0xFF, 0x00)))
-                                listaBtns.add(Btns("ocultar", Color.rgb(0xFF, 0xA5, 0x00)))
-                                listaBtns.add(Btns("desinstalar", Color.rgb(0xFF, 0x00, 0x00)))
-                                fun onOptionButtonClick(btn: Int){
-                                    if (btn == 0){ //sacar de carpeta
-                                        onConfigHappened("appSacadaDeCarpeta", packageName)
-                                    }
-                                    else if (btn == 1){ //oscultar
-                                        onConfigHappened("appEscondida", packageName)
-                                    }
-                                    else if (btn == 2){ //desinstalar
-                                        onConfigHappened("appDesinstalada", packageName)
-                                    }
+                    holder.v.setOnLongClickListener {
+                        val listaBtns = ArrayList<Btns>()
+                        listaBtns.add(Btns("sacar de carpeta", Color.rgb(0xFF, 0xFF, 0x00)))
+                        listaBtns.add(Btns("ocultar", Color.rgb(0xFF, 0xA5, 0x00)))
+                        listaBtns.add(Btns("desinstalar", Color.rgb(0xFF, 0x00, 0x00)))
+                        fun onOptionButtonClick(btn: Int) {
+                            when (btn) {
+                                0 -> { //sacar de carpeta
+                                    onConfigHappened("appSacadaDeCarpeta", packageName)
                                 }
-
-                                val dialogFragment: DialogOpciones = DialogOpciones(listaBtns) { position -> onOptionButtonClick(position) }
-                                val manager = (Contexto.mainActivity as FragmentActivity).supportFragmentManager //TODO ese contexto es peligrosoooo, antes decía holder.algoblabla
-                                dialogFragment.show(manager, "MyFragment")
-
-                                return true
+                                1 -> { //oscultar
+                                    onConfigHappened("appEscondida", packageName)
+                                }
+                                2 -> { //desinstalar
+                                    onConfigHappened("appDesinstalada", packageName)
+                                }
                             }
                         }
-                    )
+
+                        val dialogFragment =
+                            DialogOpciones(listaBtns) { position -> onOptionButtonClick(position) }
+                        val manager =
+                            (Contexto.mainActivity as FragmentActivity).supportFragmentManager //TODO ese contexto es peligrosoooo, antes decía holder.algoblabla
+                        dialogFragment.show(manager, "MyFragment")
+
+                        true
+                    }
                 }
             }
 
@@ -107,48 +95,50 @@ class AppAdapter(items: MutableList<AppInfo>?, val onConfigHappened : (String, S
             if (item.icon != null) {
                 holder.icon?.setImageDrawable(item.icon!!)
             }
+
             /* //ESTO ES PARA OBTENER EL ÍCONO DIRECTAMENTE DEL TELÉFONO EN VEZ DE CARGARLO DE APPINFO
             if (packageName != "LclObservaloConfigActivity") {
                 val icon = Contexto.app.getPackageManager().getApplicationIcon(item.packageName)
                 if (icon != null) {
                     holder.icon?.setImageDrawable(icon)
                 }
-            }
-            */
+            } */
 
-            var gradientDrawable:GradientDrawable = GradientDrawable()
+            val gradientDrawable = GradientDrawable()
             gradientDrawable.cornerRadius = radio
 
-            if (item.visible != false) {
+            if (item.visible) {
                 gradientDrawable.setColor(item.color)
             }
-            else{
+
+            else {
                 gradientDrawable.setColor(Color.rgb(0x00, 0x00, 0x00))
             }
-            holder.layout!!.setBackground(gradientDrawable)
 
-            holder.icon!!.getLayoutParams().height = (cellHeight * 0.5).toInt()
-            holder.icon!!.getLayoutParams().width = holder.icon!!.getLayoutParams().height
-            holder.label!!.textSize = holder.icon!!.getLayoutParams().width * 0.115f
+            holder.layout!!.background = gradientDrawable
+
+            holder.icon!!.layoutParams.height = (cellHeight * 0.5).toInt()
+            holder.icon!!.layoutParams.width = holder.icon!!.layoutParams.height
+            holder.label!!.textSize = holder.icon!!.layoutParams.width * 0.115f
 
             holder.label!!.setTextColor(Paint.colorAppLabel())
 
-
             val lp: LinearLayout.LayoutParams = LinearLayout.LayoutParams(cellWidth, cellHeight)
-            holder.layout!!.setLayoutParams(lp)
+            holder.layout!!.layoutParams = lp
 
         }
+
         else { //si es una carpeta
+
             holder.label!!.text = item!!.label
 
             val listaCarpeta = item.listaCarpeta!!
 
             val cantAppsEnCarpeta = listaCarpeta.size
 
-            holder.casaDeIconos.getLayoutParams().height = ((cellHeight * 0.5).toInt())
-            holder.casaDeIconos.getLayoutParams().width = ((cellHeight * 0.5).toInt())
-            var tamIconoEnCarpeta = holder.casaDeIconos.getLayoutParams().width/2
-
+            holder.casaDeIconos.layoutParams.height = ((cellHeight * 0.5).toInt())
+            holder.casaDeIconos.layoutParams.width = ((cellHeight * 0.5).toInt())
+            val tamIconoEnCarpeta = holder.casaDeIconos.layoutParams.width/2
 
             try{
             if (cantAppsEnCarpeta > 0){
@@ -183,17 +173,16 @@ class AppAdapter(items: MutableList<AppInfo>?, val onConfigHappened : (String, S
             }
             }catch(e: Exception){}
 
+            holder.icon!!.layoutParams.height = tamIconoEnCarpeta
+            holder.icon!!.layoutParams.width = tamIconoEnCarpeta
+            holder.icon2!!.layoutParams.height = tamIconoEnCarpeta
+            holder.icon2!!.layoutParams.width = tamIconoEnCarpeta
+            holder.icon3!!.layoutParams.height = tamIconoEnCarpeta
+            holder.icon3!!.layoutParams.width = tamIconoEnCarpeta
+            holder.icon4!!.layoutParams.height = tamIconoEnCarpeta
+            holder.icon4!!.layoutParams.width = tamIconoEnCarpeta
 
-            holder.icon!!.getLayoutParams().height = tamIconoEnCarpeta
-            holder.icon!!.getLayoutParams().width = tamIconoEnCarpeta
-            holder.icon2!!.getLayoutParams().height = tamIconoEnCarpeta
-            holder.icon2!!.getLayoutParams().width = tamIconoEnCarpeta
-            holder.icon3!!.getLayoutParams().height = tamIconoEnCarpeta
-            holder.icon3!!.getLayoutParams().width = tamIconoEnCarpeta
-            holder.icon4!!.getLayoutParams().height = tamIconoEnCarpeta
-            holder.icon4!!.getLayoutParams().width = tamIconoEnCarpeta
-
-            for ( i in 0..cantAppsEnCarpeta-1 ){
+            for ( i in 0 until cantAppsEnCarpeta){
                 val app = listaCarpeta[i]
                 if (app.icon != null){
                     holder.icon!!.setImageDrawable(app.icon!!)
@@ -203,27 +192,25 @@ class AppAdapter(items: MutableList<AppInfo>?, val onConfigHappened : (String, S
                 }
             }
 
-            var gradientDrawable = GradientDrawable()
+            val gradientDrawable = GradientDrawable()
             gradientDrawable.cornerRadius = 20f
 
             gradientDrawable.setColor(item.color)
 
-            holder.layout!!.setBackground(gradientDrawable)
+            holder.layout!!.background = gradientDrawable
 
             holder.label!!.textSize = ((cellHeight * 0.5).toInt()) * 0.115f
 
             val lp: LinearLayout.LayoutParams = LinearLayout.LayoutParams(cellWidth, cellHeight)
-            holder.layout!!.setLayoutParams(lp)
+            holder.layout!!.layoutParams = lp
 
-                holder.v.setOnClickListener(
-                    object: View.OnClickListener {
-                        override fun onClick(view: View) {
-                            val DialogCarpeta = DialogCarpeta(item.label, position, listaCarpeta, onConfigHappened)
-                            val manager = (holder.itemView.context as FragmentActivity).supportFragmentManager
-                            DialogCarpeta.show(manager, "MyFragment")
-                        }
-                    }
-                )
+                holder.v.setOnClickListener {
+                    val DialogCarpeta =
+                        DialogCarpeta(item.label, position, listaCarpeta, onConfigHappened)
+                    val manager =
+                        (holder.itemView.context as FragmentActivity).supportFragmentManager
+                    DialogCarpeta.show(manager, "MyFragment")
+                }
         }
 
     }
@@ -255,11 +242,10 @@ class AppAdapter(items: MutableList<AppInfo>?, val onConfigHappened : (String, S
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         patro = parent
 
-        if (viewType == 0) { //no es una carpeta
-            view = LayoutInflater.from(parent.context).inflate(R.layout.app_equisemel, parent, false)
-        }
-        else{ //es una carpeta
-            view = LayoutInflater.from(parent.context).inflate(R.layout.carpeta_equisemel, parent, false)
+        view = if (viewType == 0) { //no es una carpeta
+            LayoutInflater.from(parent.context).inflate(R.layout.app_equisemel, parent, false)
+        } else{ //es una carpeta
+            LayoutInflater.from(parent.context).inflate(R.layout.carpeta_equisemel, parent, false)
             //return ViewHolderCarpeta(v)
         }
         return ViewHolder(view, viewType)
@@ -283,6 +269,7 @@ class AppAdapter(items: MutableList<AppInfo>?, val onConfigHappened : (String, S
                 label = v.label
                 layout = v.laiaut
             }
+
             else{ //es carpeta
                 icon = v.icon
                 icon2 = v.icon2
